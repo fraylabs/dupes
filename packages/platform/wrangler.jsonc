@@ -1,0 +1,11 @@
+{
+  "name": "dupes-platform",
+  "main": "src/worker.ts",
+  "compatibility_date": "2026-10-13",
+  "d1_databases": [{
+    "binding": "DB",
+    "database_name": "dupes-platform-local",
+    "database_id": "00000000-0000-4000-8000-000000000001",
+    "migrations_dir": "migrations"
+  }]
+}

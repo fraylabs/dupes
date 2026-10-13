@@ -31,6 +31,16 @@ trap - EXIT
 npm run check
 npm audit
 npx playwright install --with-deps chromium
-timeout 180 npm run prove
-cp proof/result.json proof/*.png "$source_dir/proof/"
+proof_exit=0
+timeout 180 npm run prove || proof_exit=$?
+for artifact in proof/result.json proof/*.png; do
+  if [[ -f "$artifact" ]]; then cp "$artifact" "$source_dir/proof/"; fi
+done
+if [[ "$proof_exit" != 0 ]]; then exit "$proof_exit"; fi
+hosted_exit=0
+timeout 180 npm run prove:hosted || hosted_exit=$?
+for artifact in proof/hosted-result.json proof/hosted-admin.png; do
+  if [[ -f "$artifact" ]]; then cp "$artifact" "$source_dir/proof/"; fi
+done
+if [[ "$hosted_exit" != 0 ]]; then exit "$hosted_exit"; fi
 echo 'Fresh clone, one-command start and full service proof completed.'

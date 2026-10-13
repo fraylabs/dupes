@@ -9,21 +9,22 @@ import { credential, issue, id, hash, now, passwordHash, equal, verifySSO } from
 import { rpc } from './mcp.ts';
 import { html, client, css, widget } from './ui.ts';
 
-export function createApp(db:Storage,config:{ssoSecret?:string;siteName?:string;publicOrigin?:string}={}) {
+export function createApp(db:Storage,config:{ssoSecret?:string;siteName?:string;publicOrigin?:string;basePath?:string;sessionCookie?:string}={}) {
   const service=new Feedback(db);
+  const cookieName=config.sessionCookie||'feedback_session',cookiePath=config.basePath?config.basePath+'/':'/';
   const app=new Hono<{Variables:{auth:Record<string,any>|undefined;admin:boolean}}>();
   const limits=new Map<string,{count:number;until:number}>();
-  app.use('*',async(c,next)=>secureHeaders({contentSecurityPolicy:{defaultSrc:["'self'"],scriptSrc:["'self'"],styleSrc:["'self'"],imgSrc:["'self'",'data:'],frameAncestors:c.req.path==='/widget'?['*']:["'self'"]},xFrameOptions:false})(c,next));
+  app.use('*',async(c,next)=>secureHeaders({contentSecurityPolicy:{defaultSrc:["'self'"],scriptSrc:["'self'"],styleSrc:["'self'"],imgSrc:["'self'",'data:'],frameAncestors:c.req.path==='/widget'?['*']:["'self'"]},crossOriginResourcePolicy:c.req.path==='/widget.js'?'cross-origin':'same-origin',xFrameOptions:false})(c,next));
   app.use('*',bodyLimit({maxSize:2*1024*1024}));
   app.use('*',async(c,next)=>{
     c.header('Cache-Control','no-store');
-    const auth=await credential(c,db);c.set('auth',auth);c.set('admin',!!auth&&['admin','api'].includes(auth.kind));
+    const auth=await credential(c,db,cookieName);c.set('auth',auth);c.set('admin',!!auth&&['admin','api'].includes(auth.kind));
     if(!['GET','HEAD','OPTIONS'].includes(c.req.method)) {
       const origin=c.req.header('Origin');
       const expected=config.publicOrigin||new URL(c.req.url).origin;
       if(origin&&origin!==expected)return c.json({error:'Origin not allowed'},403);
       // Cookie sessions require a browser Origin; scripts use explicit bearer tokens.
-      if(getCookie(c,'feedback_session')&&!c.req.header('Authorization')&&!origin)return c.json({error:'Origin required'},403);
+      if(getCookie(c,cookieName)&&!c.req.header('Authorization')&&!origin)return c.json({error:'Origin required'},403);
       if(!c.get('admin')) {
         const key=auth?.id||c.req.header('x-forwarded-for')?.split(',')[0]||'anonymous';
         const time=Date.now();const bucket=limits.get(key);
@@ -41,14 +42,16 @@ export function createApp(db:Storage,config:{ssoSecret?:string;siteName?:string;
     return undefined;
   };
   app.get('/health',async c=>{await db.get('SELECT 1');return c.json({ok:true,product:'feedback'});});
-  app.get('/api/session',async c=>{const auth=c.get('auth');const user=auth?.user_id?await db.get('SELECT id,name FROM users WHERE id=?',[auth.user_id]):null;return c.json({admin:c.get('admin'),user,siteName:config.siteName||'Feedback',statuses});});
+  app.get('/api/session',async c=>{const auth=c.get('auth');const user=auth?.user_id?await db.get('SELECT id,name FROM users WHERE id=?',[auth.user_id]):null;return c.json({admin:c.get('admin'),user,siteName:config.siteName||'Feedback',statuses,hosted:!!config.basePath});});
   app.post('/api/login',async c=>{
     const {password}=z.object({password:z.string().max(500)}).parse(await c.req.json());
+    const loginKey=await db.get("SELECT * FROM credentials WHERE hash=? AND kind='api'",[await hash(password)]);
+    if(config.basePath&&loginKey){await issue(c,db,'admin',null,cookieName,cookiePath);return c.json({ok:true});}
     const stored=await db.get('SELECT value FROM settings WHERE key=?',['admin_password']);
     if(!stored||!equal(await passwordHash(password,stored.value.split(':')[0]),stored.value))return c.json({error:'Password not recognised'},401);
-    await issue(c,db,'admin');return c.json({ok:true});
+    await issue(c,db,'admin',null,cookieName,cookiePath);return c.json({ok:true});
   });
-  app.post('/api/logout',async c=>{const a=c.get('auth');if(a&&a.kind!=='api')await db.run('DELETE FROM credentials WHERE id=?',[a.id]);deleteCookie(c,'feedback_session',{path:'/'});return c.json({ok:true});});
+  app.post('/api/logout',async c=>{const a=c.get('auth');if(a&&a.kind!=='api')await db.run('DELETE FROM credentials WHERE id=?',[a.id]);deleteCookie(c,cookieName,{path:cookiePath});return c.json({ok:true});});
   app.post('/api/identify',async c=>{
     const p=z.object({name:z.string().trim().min(1).max(100).optional(),email:z.email().max(254).optional(),token:z.string().max(10000).optional()}).parse(await c.req.json());
     let userId=id();
@@ -63,7 +66,7 @@ export function createApp(db:Storage,config:{ssoSecret?:string;siteName?:string;
       const current=c.get('auth');if(current?.kind==='voter'&&current.user_id) {const u=await db.get('SELECT * FROM users WHERE id=?',[current.user_id]);if(u&&!u.verified)userId=u.id;}
       await db.run('INSERT INTO users(id,name,email) VALUES(?,?,?) ON CONFLICT(id) DO UPDATE SET name=excluded.name,email=excluded.email',[userId,p.name,p.email||null]);
     }
-    await issue(c,db,'voter',userId);return c.json({id:userId});
+    await issue(c,db,'voter',userId,cookieName,cookiePath);return c.json({id:userId});
   });
   app.get('/api/boards',async c=>c.json(await db.all(`SELECT * FROM boards ${c.get('admin')?'':'WHERE private=0'} ORDER BY name`)));
   app.get('/api/tags',async c=>c.json(await db.all(`SELECT t.* FROM tags t JOIN boards b ON b.id=t.board_id ${c.get('admin')?'':'WHERE b.private=0'} ORDER BY t.name`)));
@@ -121,9 +124,9 @@ export function createApp(db:Storage,config:{ssoSecret?:string;siteName?:string;
     const result=await rpc(service,body);return result?c.json(result):c.body(null,202);
   });
   app.get('/mcp',c=>c.json({error:'Use stateless Streamable HTTP POST'},405));
-  app.get('/assets/app.js',c=>c.body(client,200,{'Content-Type':'application/javascript'}));
+  app.get('/assets/app.js',c=>c.body('const BASE='+JSON.stringify(config.basePath||'')+';\n'+client,200,{'Content-Type':'application/javascript'}));
   app.get('/assets/style.css',c=>c.body(css,200,{'Content-Type':'text/css'}));
   app.get('/widget.js',c=>c.body(widget,200,{'Content-Type':'application/javascript','Cross-Origin-Resource-Policy':'cross-origin'}));
-  for(const path of ['/','/roadmap','/changelog','/admin','/widget','/posts/:id'])app.get(path,c=>c.html(html));
+  for(const path of ['/','/roadmap','/changelog','/admin','/widget','/posts/:id'])app.get(path,c=>c.html(html.replaceAll('/assets/',(config.basePath||'')+'/assets/')));
   return app;
 }

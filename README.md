@@ -30,6 +30,21 @@ Optional email: configure your own Resend account with `RESEND_API_KEY` and veri
 
 Embed `<script src="https://your-feedback-host/widget.js" defer></script>` in a website to add the public feedback panel. The widget uses its own origin's browser session. Sites may require allowing the script and frame in their own CSP.
 
-The core has no Node imports. SQLite runs through Drizzle; `d1-storage.ts` supplies the future D1 adapter, but Workers deployment, durable rate limits and hosted multitenancy are not shipped. Changelog content is safely rendered as plain text. Rich media, integrations, Canny analytics and email-based account recovery are outside this first release.
+The core has no Node imports. SQLite and D1 run through Drizzle. Hosted instances share a D1 database with tenant-scoped reads and writes, composite keys and foreign keys. Live Workers deployment and durable rate limits are not shipped. Changelog content is safely rendered as plain text. Rich media, integrations, Canny analytics and email-based account recovery are outside this first release.
 
 Verification runs on a fresh checkout on Linux: `npm run check`, then `npm run prove`. The proof starts the real CLI and service, imports the fixture twice, checks voting, privacy, SSO, merging and every MCP tool, and captures public and admin UI screenshots. It uses disposable data and never logs credentials.
+
+## Hosted platform (local development)
+
+After `npm ci`, put a private `PLATFORM_API_KEYS` value (32+ characters; comma-separated keys represent separate owners) in `packages/platform/.dev.vars`. Keep it out of Git. Run:
+
+```sh
+npx wrangler d1 migrations apply dupes-platform-local --local --config packages/platform/wrangler.jsonc
+npx wrangler dev --local --config packages/platform/wrangler.jsonc
+```
+
+The platform API uses a platform Bearer key. `POST /v1/instances` with `{ "app": "feedback", "name": "My workspace" }` returns `url`, `adminUrl`, `adminApiKey`, and `mcpEndpoint`. Save the returned key privately: it is returned only at creation. `GET /v1/instances`, `GET /v1/instances/:id`, and `DELETE /v1/instances/:id` operate only on that key's instances. Deletion permanently removes the instance's content and credentials. Usage includes requests and logical UTF-8 storage bytes, excluding shared indexes and page overhead.
+
+Set `DUPES_PLATFORM_URL` and `DUPES_PLATFORM_API_KEY` privately, then run `dupe up feedback --hosted --name "My workspace"`. The CLI saves the result in a mode-0600 file in `data/`, prints URLs and the file path, and keeps keys out of stdout. Use the returned admin key to sign in or authenticate instance REST/MCP calls. `dupe mcp feedback --url <instance-url>` prints agent configuration. HTTPS is required except for local development.
+
+`npm run prove:hosted` exercises local Wrangler/workerd and D1 provisioning, metering, deletion, tenant isolation, CLI and browser login. Local configuration uses a placeholder D1 ID; it does not provision or deploy Cloudflare resources. Hosted email delivery is not configured; the optional Resend sender currently runs in self-hosted Node mode.
