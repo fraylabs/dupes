@@ -1,0 +1,44 @@
+{
+  "boards":[
+    {"id":"features","name":"Feature requests","isPrivate":false,"privateComments":false},
+    {"id":"experience","name":"Small improvements","isPrivate":false,"privateComments":false},
+    {"id":"internal","name":"Team only","isPrivate":true,"privateComments":true}
+  ],
+  "users":[
+    {"id":"maya","name":"Maya Chen","email":"maya@example.test","userID":"maya","isAdmin":false},
+    {"id":"alex","name":"Alex Rivera","email":"alex@example.test","userID":"alex","isAdmin":false},
+    {"id":"sam","name":"Sam from the team","email":"sam@example.test","userID":"sam","isAdmin":true}
+  ],
+  "tags":[
+    {"id":"workflow","name":"Workflow","board":{"id":"features"}},
+    {"id":"integrations","name":"Integrations","board":{"id":"features"}},
+    {"id":"design","name":"Design","board":{"id":"experience"}}
+  ],
+  "categories":[{"id":"collaboration","name":"Collaboration","board":{"id":"features"},"parentID":null}],
+  "posts":[
+    {"id":"dark","title":"A quieter workspace after dark","details":"A dark theme would make late-night sessions easier on the eyes. Something warm and considered, with the same calm feel as the light theme.","status":"planned","score":128,"board":{"id":"features"},"author":{"id":"maya","name":"Maya Chen"},"tags":[{"id":"workflow","name":"Workflow"}],"category":{"id":"collaboration","name":"Collaboration"},"created":"2026-10-12T10:00:00Z"},
+    {"id":"slack","title":"Bring the conversation into Slack","details":"Let us know when a request picks up momentum, or when something we voted for ships. A small update in the right channel would go a long way.","status":"in progress","score":96,"board":{"id":"features"},"author":{"id":"alex","name":"Alex Rivera"},"tags":[{"id":"integrations","name":"Integrations"}],"created":"2026-10-11T10:00:00Z"},
+    {"id":"views","title":"Save the views that matter to you","details":"I keep coming back to the same set of filters. It would be lovely to save a few views and switch between them in one click.","status":"under review","score":74,"board":{"id":"features"},"author":{"id":"maya","name":"Maya Chen"},"tags":[{"id":"workflow","name":"Workflow"}],"created":"2026-10-10T10:00:00Z"},
+    {"id":"export","title":"Take your ideas with you","details":"A simple CSV export of posts and votes would help us share the bigger picture with the rest of our team.","status":"complete","score":62,"board":{"id":"features"},"author":{"id":"alex","name":"Alex Rivera"},"tags":[{"id":"workflow","name":"Workflow"}],"created":"2026-10-09T10:00:00Z"},
+    {"id":"shortcut","title":"A shortcut for the little things","details":"Pressing / to search, and N to share an idea, would make moving around feel a little faster.","status":"open","score":43,"board":{"id":"experience"},"author":{"id":"maya","name":"Maya Chen"},"tags":[{"id":"design","name":"Design"}],"created":"2026-10-08T10:00:00Z"},
+    {"id":"digest","title":"A weekly note on what’s new","details":"One thoughtful email each week with the ideas gaining traction and the things that shipped. No noise, just the good stuff.","status":"planned","score":38,"board":{"id":"features"},"author":{"id":"alex","name":"Alex Rivera"},"tags":[],"created":"2026-10-07T10:00:00Z"},
+    {"id":"private","title":"Internal planning notes","details":"This private request must never appear on public boards or the roadmap.","status":"planned","score":2,"board":{"id":"internal"},"author":{"id":"maya","name":"Maya Chen"},"tags":[],"created":"2026-10-06T10:00:00Z"},
+    {"id":"duplicate","title":"Another quieter workspace request","details":"Please merge this with the original idea once reviewed.","status":"open","score":1,"board":{"id":"features"},"author":{"id":"alex","name":"Alex Rivera"},"tags":[],"created":"2026-10-05T10:00:00Z"}
+  ],
+  "votes":[
+    {"id":"v1","post":{"id":"dark"},"voter":{"id":"maya","name":"Maya Chen"}},
+    {"id":"v2","post":{"id":"dark"},"voter":{"id":"alex","name":"Alex Rivera"}},
+    {"id":"v3","post":{"id":"slack"},"voter":{"id":"maya","name":"Maya Chen"}},
+    {"id":"v4","post":{"id":"slack"},"voter":{"id":"alex","name":"Alex Rivera"}},
+    {"id":"v5","post":{"id":"duplicate"},"voter":{"id":"alex","name":"Alex Rivera"}},
+    {"id":"v6","post":{"id":"export"},"voter":{"id":"maya","name":"Maya Chen"}}
+  ],
+  "comments":[
+    {"id":"reply-slack","post":{"id":"slack"},"author":{"id":"sam","name":"Sam from the team","isAdmin":true},"value":"We’re building this now. The first version will focus on new ideas and status updates. Thanks for the thoughtful suggestions!","private":false,"created":"2026-10-12T13:00:00Z"},
+    {"id":"private-note","post":{"id":"slack"},"author":{"id":"sam","name":"Sam from the team","isAdmin":true},"value":"Private team note: do not expose this comment.","private":true,"created":"2026-10-12T13:05:00Z"}
+  ],
+  "entries":[
+    {"id":"export-release","title":"Your ideas, ready to go.","plaintextDetails":"You can now export your feedback to CSV. Posts, statuses and vote counts come along for the ride — ready for your next team discussion.\n\nThanks to everyone who shared a vote and helped us get the details right.","types":["new"],"status":"published","publishedAt":"2026-10-10T10:00:00Z","created":"2026-10-10T10:00:00Z","posts":[{"id":"export"}]},
+    {"id":"draft","title":"Private draft release","plaintextDetails":"This draft must not be public.","types":["improved"],"status":"draft","publishedAt":null,"created":"2026-10-12T10:00:00Z","posts":[]}
+  ]
+}
