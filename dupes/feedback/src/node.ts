@@ -15,7 +15,7 @@ if(!await db.get("SELECT 1 FROM settings WHERE key='admin_password'")) {
   await db.run("INSERT INTO settings(key,value) VALUES('admin_password',?)",[await passwordHash(password)]);
 }
 chmodSync(resolve(dir,'feedback.sqlite'),0o600);
-if(!await db.get('SELECT 1 FROM boards'))await db.run("INSERT INTO boards(id,name,description) VALUES('ideas','Feature requests','What would make this product better for you? Share an idea or vote for one you love.')");
+if(!await db.get('SELECT 1 FROM boards'))await db.run('INSERT INTO boards(id,name,description) VALUES(?,?,?)',['ideas','Feature requests','What would make this product better for you? Share an idea or vote for one you love.']);
 const app=createApp(db,{ssoSecret:process.env.SSO_SECRET,siteName:process.env.SITE_NAME,publicOrigin:process.env.PUBLIC_ORIGIN});
 const port=Number(process.env.PORT||3000),hostname=process.env.HOST||'127.0.0.1';
 const server=serve({fetch:app.fetch,port,hostname},()=>console.log('Feedback is ready at '+(process.env.PUBLIC_ORIGIN||'http://'+hostname+':'+port)+'\nAdmin password: your private data folder / admin-password (or your configured ADMIN_PASSWORD).'));

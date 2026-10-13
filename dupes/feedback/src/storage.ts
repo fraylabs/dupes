@@ -9,7 +9,16 @@ export interface Storage {
 }
 // Drizzle parameters stay bound; SQL text never contains user input.
 export function query(text: string, values: unknown[] = []) {
-  const parts = text.split('?');
+  const parts: string[] = [];
+  let start=0,quote='';
+  for(let i=0;i<text.length;i++) {
+    const char=text[i];
+    if(quote) {
+      if(char===quote) {if(text[i+1]===quote)i++;else quote='';}
+    }else if(char==="'"||char==='"'||char==='`')quote=char;
+    else if(char==='?') {parts.push(text.slice(start,i));start=i+1;}
+  }
+  parts.push(text.slice(start));
   if (parts.length !== values.length + 1) throw new Error('SQL parameter mismatch');
   const result = sql.empty();
   parts.forEach((part, i) => { result.append(sql.raw(part)); if (i < values.length) result.append(sql`${values[i]}`); });
