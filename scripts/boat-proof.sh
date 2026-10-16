@@ -43,4 +43,23 @@ for artifact in proof/hosted-result.json proof/hosted-admin.png; do
   if [[ -f "$artifact" ]]; then cp "$artifact" "$source_dir/proof/"; fi
 done
 if [[ "$hosted_exit" != 0 ]]; then exit "$hosted_exit"; fi
+if docker info >/dev/null 2>&1; then
+  docker_name="dupes-proof-$$"
+  docker build -t dupes-feedback:proof .
+  mkdir -p proof/docker-data
+  docker run -d --rm --name "$docker_name" --user "$(id -u):$(id -g)" -v "$PWD/proof/docker-data:/data" -p 127.0.0.1:3124:3000 dupes-feedback:proof >/dev/null
+  trap 'docker stop "$docker_name" >/dev/null 2>&1 || true' EXIT
+  for ((i=0; i<60; i++)); do
+    if curl --fail --silent http://127.0.0.1:3124/health >/dev/null; then break; fi
+    sleep 1
+  done
+  curl --fail --silent http://127.0.0.1:3124/health
+  docker exec "$docker_name" node --import tsx dupes/feedback/src/import-cli.ts --fixture fixtures/canny.json
+  curl --fail --silent http://127.0.0.1:3124/api/posts | node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>{const posts=JSON.parse(s);if(!posts.some(p=>p.votes===128))process.exit(1)})'
+  docker stop "$docker_name" >/dev/null
+  trap - EXIT
+  echo '{"ok":true,"mode":"Docker","health":true,"fixtureVotes":128}' > "$source_dir/proof/docker-result.json"
+else
+  echo '{"mode":"Node fallback","dockerAvailable":false}' > "$source_dir/proof/docker-result.json"
+fi
 echo 'Fresh clone, one-command start and full service proof completed.'

@@ -2,6 +2,7 @@ FROM node:22-bookworm-slim
 WORKDIR /app
 COPY package*.json ./
 COPY packages/cli/package.json packages/cli/package.json
+COPY packages/platform/package.json packages/platform/package.json
 COPY dupes/feedback/package.json dupes/feedback/package.json
 RUN npm ci --omit=dev
 COPY . .
