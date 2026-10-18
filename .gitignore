@@ -5,3 +5,7 @@ data/
 proof/
 .wrangler/
 .dev.vars*
+
+release/
+packages/cli/runtime/
+*-data/

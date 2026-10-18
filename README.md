@@ -2,11 +2,13 @@
 
 Self-hostable alternatives to paid tools. The first is **Feedback**: boards, votes, comments, roadmap and changelog, with REST and MCP built in.
 
-From a checkout, run one command:
+The prepared public install is one command (npm publication is pending):
 
 ```sh
-node packages/cli/bin/dupe.mjs up feedback
+npx @dupes/cli up feedback
 ```
+
+For the current private checkout, use `node packages/cli/bin/dupe.mjs up feedback`. Release preparation and publication gates are documented in [RELEASING.md](RELEASING.md).
 
 Open http://localhost:3000. The command uses Docker when its daemon is available; otherwise it prepares Node dependencies and starts the same app. Node 22+ is required for the CLI. `--node` explicitly selects Node. After `npm ci`, `npx dupe` is available as the workspace binary. No registry package or image has been published.
 

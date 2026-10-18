@@ -1,7 +1,6 @@
 {
   "name": "@dupes/cli",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
   "bin": {
     "dupe": "bin/dupe.mjs"
@@ -9,5 +8,26 @@
   "engines": {
     "node": ">=22"
   },
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "files": [
+    "bin",
+    "runtime",
+    "LICENSE",
+    "NOTICE",
+    "README.md"
+  ],
+  "scripts": {
+    "prepack": "node ../../scripts/prepare-release.mjs --runtime-only"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.19.0",
+    "better-sqlite3": "^12.4.1",
+    "drizzle-orm": "^0.45.4",
+    "hono": "^4.10.0",
+    "tsx": "^4.20.6",
+    "zod": "^4.1.12"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
 }
