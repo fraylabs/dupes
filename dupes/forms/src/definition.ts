@@ -1,0 +1,62 @@
+export type Field={ref:string;type:string;title:string;properties:Record<string,any>;validations:Record<string,any>};
+export type Condition={op:string;vars:any[]};
+export type Rule={type:'field'|'hidden';ref?:string;actions:{action:string;condition:Condition;details:Record<string,any>}[]};
+export type Definition={title:string;fields:Field[];hidden:string[];variables:Record<string,number>;logic:Rule[];thankyou_screens:{ref:string;title:string;properties?:Record<string,any>}[]};
+const types=new Set(['short_text','long_text','email','number','yes_no','date','website','multiple_choice','dropdown','opinion_scale','rating','legal','statement','phone_number']);
+const operators=new Set(['and','or','not','always','answered','not_answered','equal','not_equal','is','is_not','begins_with','ends_with','contains','not_contains','lower_than','lower_equal_than','greater_than','greater_equal_than','on','not_on','earlier_than','earlier_than_or_on','later_than','later_than_or_on']);
+export function fail(message:string):never{throw Error(message);}
+const ref=(value:unknown):string=>{if(typeof value!=='string'||!/^[A-Za-z0-9_-]{1,120}$/.test(value)||['__proto__','constructor','prototype'].includes(value))fail('Use unique letter, number, underscore or hyphen references.');return value as string;};
+const text=(v:unknown,max:number,label:string)=>{if(typeof v!=='string'||!v.trim()||v.length>max)fail(label+' is required (maximum '+max+' characters).');return v as string;};
+export function definition(input:any):Definition {
+  if(!input||!Array.isArray(input.fields)||input.fields.length<1||input.fields.length>100)fail('A form needs 1–100 questions.');
+  const fields:Field[]=input.fields.map((f:any)=>{
+    if(!types.has(f.type))fail('Unsupported question type: '+String(f.type)+'. No form was saved.');
+    const properties={...f.properties},validations={...f.validations};
+    if(properties.allow_other_choice)fail('Other-choice inputs are not supported yet; no form was saved.');
+    if(['multiple_choice','dropdown'].includes(f.type)){
+      if(!Array.isArray(properties.choices)||!properties.choices.length||properties.choices.length>100)fail('Choice questions need 1–100 choices.');
+      properties.choices=properties.choices.map((c:any)=>({ref:ref(c.ref||c.id),label:text(c.label,500,'Choice label')}));
+      if(new Set(properties.choices.map((c:any)=>c.ref)).size!==properties.choices.length)fail('Choice references must be unique.');
+    }
+    for(const key of ['min_value','max_value','min_length','max_length','min_selection','max_selection'])if(validations[key]!==undefined&&(!Number.isFinite(validations[key])||Math.abs(validations[key])>1e9))fail('Invalid question validation.');
+    if(properties.description!==undefined&&(typeof properties.description!=='string'||properties.description.length>10000))fail('Question description is too long.');
+    if(['opinion_scale','rating'].includes(f.type)&&properties.steps!==undefined&&(!Number.isInteger(properties.steps)||properties.steps<2||properties.steps>11))fail('Scales need 2–11 steps.');
+    return {ref:ref(f.ref||f.id),type:f.type,title:text(f.title,2000,'Question title'),properties,validations};
+  });
+  const fieldRefs=new Set(fields.map(f=>f.ref));if(fieldRefs.size!==fields.length)fail('Question references must be unique.');
+  const hidden=(input.hidden||[]).map(ref) as string[];if(hidden.length>30||new Set(hidden).size!==hidden.length)fail('Use at most 30 unique hidden fields.');
+  const variables:Record<string,number>={};for(const [key,value] of Object.entries(input.variables||{})){ref(key);if(!Number.isFinite(value))fail('Variables must start with finite numbers.');variables[key]=value as number;}
+  const ends=(input.thankyou_screens||[{ref:'default',title:'Thanks. Your response is in.'}]).map((e:any)=>({ref:ref(e.ref||e.id||'default'),title:text(e.title,2000,'Ending title'),properties:{description:String(e.properties?.description||'').slice(0,10000)}}));
+  const endingRefs=new Set(ends.map((e:any)=>e.ref));endingRefs.add('default');
+  const choiceRefs=new Set(fields.flatMap(f=>(f.properties.choices||[]).map((c:any)=>c.ref)));
+  function operand(v:any){if(!v||!['field','hidden','variable','constant','choice'].includes(v.type))fail('Unsupported logic operand.');if(v.type==='constant'){if(!['string','number','boolean'].includes(typeof v.value)||typeof v.value==='number'&&!Number.isFinite(v.value))fail('Invalid logic constant.');}else {const set=v.type==='field'?fieldRefs:v.type==='hidden'?new Set(hidden):v.type==='choice'?choiceRefs:new Set(Object.keys(variables));if(!set.has(v.value))fail('Logic refers to a missing '+v.type+': '+String(v.value));}}
+  function condition(c:any,depth=0){if(depth>12||!c||!operators.has(c.op)||!Array.isArray(c.vars)||c.vars.length>50)fail('Unsupported or excessive logic condition.');if(['and','or','not'].includes(c.op)){if(!c.vars.length||c.op==='not'&&c.vars.length!==1)fail('Invalid combined condition.');c.vars.forEach((v:any)=>condition(v,depth+1));}else{const n=c.op==='always'?0:['answered','not_answered'].includes(c.op)?1:2;if(c.vars.length!==n)fail('Invalid number of logic operands.');c.vars.forEach(operand);}}
+  const seenRules=new Set<string>();const logic:Rule[]=input.logic||[];if(!Array.isArray(logic)||logic.length>101)fail('Too many logic rules.');
+  for(const rule of logic){if(!['field','hidden'].includes(rule.type)||rule.type==='field'&&!fieldRefs.has(rule.ref!))fail('Logic trigger question is missing.');const key=rule.type==='hidden'?'hidden':rule.ref!;if(seenRules.has(key))fail('Combine actions for the same trigger in one rule.');seenRules.add(key);if(!Array.isArray(rule.actions)||rule.actions.length>100)fail('Too many logic actions.');for(const action of rule.actions){condition(action.condition);if(action.action==='jump'){const to=action.details?.to;if(!to||!(to.type==='field'?fieldRefs:to.type==='thankyou'?endingRefs:new Set()).has(to.value))fail('Unsupported jump destination; no logic was dropped.');}else if(['add','subtract','multiply','divide','set'].includes(action.action)){const target=action.details?.target;if(target?.type!=='variable'||!Object.hasOwn(variables,target.value))fail('Calculation target variable is missing.');operand(action.details?.value);}else fail('Unsupported logic action: '+String(action.action)+'. No logic was dropped.');}}
+  return {title:text(input.title,200,'Form title'),fields,hidden,variables,logic:JSON.parse(JSON.stringify(logic)),thankyou_screens:ends};
+}
+export function validateAnswer(field:Field,value:any) {
+  if(value===null||value===''){if(field.validations.required&&field.type!=='statement')fail('Please answer '+field.title);return null;}
+  if(field.type==='statement')return true;
+  if(['yes_no','legal'].includes(field.type)){if(typeof value!=='boolean'||field.type==='legal'&&field.validations.required&&!value)fail('Please choose an answer.');return value;}
+  if(['number','rating','opinion_scale'].includes(field.type)){if(typeof value!=='number'||!Number.isFinite(value))fail('Please enter a number.');const min=field.validations.min_value??(field.type==='rating'?1:field.type==='opinion_scale'?(field.properties.start_at_one?1:0):undefined);const max=field.validations.max_value??(['rating','opinion_scale'].includes(field.type)?(field.properties.steps||5)+(field.type==='opinion_scale'&&!field.properties.start_at_one?-1:0):undefined);if(min!==undefined&&value<min||max!==undefined&&value>max)fail('Number is outside the allowed range.');return value;}
+  if(['multiple_choice','dropdown'].includes(field.type)){const multiple=field.type==='multiple_choice'&&field.properties.allow_multiple_selection;const values=multiple?value:[value];if(!Array.isArray(values)||values.length>100||values.some(v=>!(field.properties.choices||[]).some((c:any)=>c.ref===v))||new Set(values).size!==values.length)fail('Please choose from the available answers.');if(field.validations.required&&!values.length||field.validations.min_selection!==undefined&&values.length<field.validations.min_selection||field.validations.max_selection!==undefined&&values.length>field.validations.max_selection)fail('Please check the number of selected choices.');return multiple?values:value;}
+  if(typeof value!=='string'||value.length>20000)fail('Answer is too long.');
+  if(field.type==='email'&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value))fail('Please enter an email address.');
+  if(field.type==='date'&&(!/^\d{4}-\d{2}-\d{2}$/.test(value)||new Date(value).toISOString().slice(0,10)!==value))fail('Please enter a date.');
+  if(field.type==='website'){try{if(!['https:','http:'].includes(new URL(value).protocol))fail('Invalid website.');}catch{fail('Please enter a website URL.');}}
+  if(field.validations.min_length!==undefined&&value.length<field.validations.min_length||field.validations.max_length!==undefined&&value.length>field.validations.max_length)fail('Please check the answer length.');
+  return value;
+}
+export function walk(def:Definition,answers:Record<string,any>,hiddenInput:Record<string,any>) {
+  if(!answers||typeof answers!=='object'||Array.isArray(answers)||Object.keys(answers).some(k=>!def.fields.some(f=>f.ref===k)))fail('Unknown question answer.');
+  const hidden:Record<string,string>=Object.create(null);for(const name of def.hidden){const v=hiddenInput?.[name];if(v!==undefined){if(typeof v!=='string'||v.length>2000)fail('Hidden value is too long.');hidden[name]=v;}}
+  const variables={...def.variables},clean:Record<string,any>=Object.create(null),visited:string[]=[];
+  const value=(v:any)=>v.type==='field'?clean[v.value]:v.type==='hidden'?hidden[v.value]:v.type==='variable'?variables[v.value]:v.value;
+  function evaluate(c:Condition):boolean{if(c.op==='always')return true;if(c.op==='and')return c.vars.every(evaluate);if(c.op==='or')return c.vars.some(evaluate);if(c.op==='not')return !evaluate(c.vars[0]);const a=value(c.vars[0]),b=c.vars[1]?value(c.vars[1]):undefined,answered=a!==undefined&&a!==null&&a!==''&&(!Array.isArray(a)||a.length>0);if(c.op==='answered')return answered;if(c.op==='not_answered')return !answered;if(!answered)return false;const equal=Array.isArray(a)?a.includes(b):a===b;switch(c.op){case 'equal':case 'is':case 'on':return equal;case 'not_equal':case 'is_not':case 'not_on':return !equal;case 'begins_with':return String(a).startsWith(String(b));case 'ends_with':return String(a).endsWith(String(b));case 'contains':return Array.isArray(a)?a.includes(b):String(a).includes(String(b));case 'not_contains':return Array.isArray(a)?!a.includes(b):!String(a).includes(String(b));case 'lower_than':return Number(a)<Number(b);case 'lower_equal_than':return Number(a)<=Number(b);case 'greater_than':return Number(a)>Number(b);case 'greater_equal_than':return Number(a)>=Number(b);case 'earlier_than':return String(a)<String(b);case 'earlier_than_or_on':return String(a)<=String(b);case 'later_than':return String(a)>String(b);case 'later_than_or_on':return String(a)>=String(b);default:return false;}}
+  const actions=(rule:Rule|undefined)=>{for(const a of rule?.actions||[]){if(!evaluate(a.condition))continue;if(a.action==='jump')return a.details.to;const target=a.details.target.value,n=Number(value(a.details.value));if(!Number.isFinite(n))fail('A form calculation needs a numeric answer.');const old=variables[target];const result=a.action==='set'?n:a.action==='add'?old+n:a.action==='subtract'?old-n:a.action==='multiply'?old*n:old/n;if(!Number.isFinite(result))fail('A form calculation is undefined.');variables[target]=result;}return undefined;};
+  let next=actions(def.logic.find(r=>r.type==='hidden')),index=next?.type==='field'?def.fields.findIndex(f=>f.ref===next.value):0;
+  let ending=next?.type==='thankyou'?next.value:undefined;
+  while(!ending&&index<def.fields.length){const field=def.fields[index];if(visited.includes(field.ref))fail('Form logic created a cycle. Please contact the form owner.');visited.push(field.ref);if(!Object.hasOwn(answers,field.ref))return {done:false,field,index,total:def.fields.length,visited,answers:clean,hidden,variables};clean[field.ref]=validateAnswer(field,answers[field.ref]);next=actions(def.logic.find(r=>r.type==='field'&&r.ref===field.ref));if(next?.type==='thankyou'){ending=next.value;break;}index=next?.type==='field'?def.fields.findIndex(f=>f.ref===next.value):index+1;}
+  return {done:true,ending:def.thankyou_screens.find(e=>e.ref===(ending||'default'))||def.thankyou_screens[0]||{ref:'default',title:'Thanks. Your response is in.'},visited,answers:clean,hidden,variables};
+}
