@@ -7,8 +7,17 @@ import { hash,id,now,equal } from '../../../dupes/feedback/src/auth.ts';
 import type { Storage,Statement } from '../../../dupes/feedback/src/storage.ts';
 import { tenantStorage,tenantTables,tenantStatement } from './tenant-storage.ts';
 import { createFormsApp } from '../../../dupes/forms/src/app.ts';
-import { deliverPending } from '../../../dupes/forms/src/webhooks.ts';
-type Env={DB:Parameters<typeof d1Storage>[0];PLATFORM_API_KEYS:string;PUBLIC_ORIGIN?:string;SSO_SECRET?:string};
+import { deliverPending,publicFetch,type Delivery } from '../../../dupes/forms/src/webhooks.ts';
+type WebhookBinding={WEBHOOK_RECEIVER?:{fetch(request:Request):Promise<Response>};WEBHOOK_RECEIVER_ORIGIN?:string};
+type Env=WebhookBinding&{DB:Parameters<typeof d1Storage>[0];PLATFORM_API_KEYS:string;PUBLIC_ORIGIN?:string;SSO_SECRET?:string};
+function webhookDelivery(env:WebhookBinding):Delivery|undefined {
+  if(!env.WEBHOOK_RECEIVER||!env.WEBHOOK_RECEIVER_ORIGIN)return undefined;
+  return async(url,body,headers)=>{
+    if(new URL(url).origin!==env.WEBHOOK_RECEIVER_ORIGIN)return publicFetch(url,body,headers);
+    const response=await env.WEBHOOK_RECEIVER!.fetch(new Request(url,{method:'POST',body,headers,redirect:'manual',signal:AbortSignal.timeout(10000)}));
+    await response.body?.cancel();return response.status;
+  };
+}
 type Instance={id:string;owner_hash:string;app:string;name:string;created:string;requests:number};
 const platform=new Hono<{Bindings:Env;Variables:{owner:string;db:Storage}}>();
 platform.use('*',bodyLimit({maxSize:2*1024*1024}));
@@ -63,7 +72,7 @@ platform.all('/i/:tenant/*',async c=>{
   await db.run('UPDATE instances SET requests=requests+1 WHERE id=?',[tenant]);
   const base='/i/'+tenant;const url=new URL(c.req.url);url.pathname=url.pathname.slice(base.length)||'/';
   if(instance.app==='forms'){
-    const forms=createFormsApp(db,{tenant,basePath:base,siteName:instance.name,publicOrigin:c.env.PUBLIC_ORIGIN||url.origin,background:p=>c.executionCtx.waitUntil(p)});
+    const forms=createFormsApp(db,{tenant,basePath:base,siteName:instance.name,publicOrigin:c.env.PUBLIC_ORIGIN||url.origin,background:p=>c.executionCtx.waitUntil(p),sendWebhook:webhookDelivery(c.env)});
     return forms.fetch(new Request(url,c.req.raw));
   }
   const scoped=tenantStorage(db,tenant);
@@ -72,4 +81,4 @@ platform.all('/i/:tenant/*',async c=>{
   return response;
 });
 export default {fetch:platform.fetch,scheduled:async(_event:unknown,env:Env)=>sweepForms(env)};
-export async function sweepForms(env:Pick<Env,'DB'>){const db=d1Storage(env.DB);const pending=await db.all('SELECT DISTINCT tenant_id FROM forms_deliveries WHERE sent=0 AND attempts<10 AND next_at<=? LIMIT 20',[Date.now()]);await Promise.all(pending.map(row=>deliverPending(db,row.tenant_id)));}
+export async function sweepForms(env:Pick<Env,'DB'>&WebhookBinding){const db=d1Storage(env.DB);const pending=await db.all('SELECT DISTINCT tenant_id FROM forms_deliveries WHERE sent=0 AND attempts<10 AND next_at<=? LIMIT 20',[Date.now()]);await Promise.all(pending.map(row=>deliverPending(db,row.tenant_id,webhookDelivery(env))));}
