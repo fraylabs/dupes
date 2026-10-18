@@ -9,6 +9,7 @@ Infrastructure owns Cloudflare resource changes. Reconcile existing Worker/datab
 Create a private deployment config beside `wrangler.jsonc` so relative paths resolve to the same source, assets and migrations. Keep the tracked local config's placeholder database ID unchanged. In the private config:
 
 - Keep `main: "src/worker.ts"`, compatibility date `2026-10-13`, and the existing `ASSETS` settings.
+- Keep `compatibility_flags: ["global_fetch_strictly_public"]`. Outbound webhook fetches must use public routing, including destinations hosted on Workers in the same zone/account. Without this flag, same-zone fetch bypasses Worker routing and can return 404 before the receiver runs. See the [official fetch documentation](https://developers.cloudflare.com/workers/runtime-apis/fetch/) and [compatibility flag reference](https://developers.cloudflare.com/workers/configuration/compatibility-flags/#global-fetch-strictly-public).
 - Set the intended private preview Worker name.
 - Replace only the `DB` entry's database name and database ID with the reconciled real preview database. Keep `binding: "DB"` and `migrations_dir: "migrations"`.
 - Set `PUBLIC_ORIGIN` to the exact HTTPS preview origin, with no trailing slash. It controls links and browser Origin checks.
