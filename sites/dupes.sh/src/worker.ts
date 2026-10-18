@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
 import { z } from 'zod';
-import platform,{sweepForms} from '../../../packages/platform/src/worker.ts';
+import platform from '../../../packages/platform/src/worker.ts';
 import { d1Storage } from '../../../dupes/feedback/src/d1-storage.ts';
 import { hash,id,now } from '../../../dupes/feedback/src/auth.ts';
 import { page,voteNotice } from './pages.ts';
@@ -41,4 +41,4 @@ app.get('*',async c=>{
   if(c.req.path.startsWith('/images/')||c.req.path.startsWith('/reference/')||['/styles.css','/board-legal.css','/site.js'].includes(c.req.path))return c.env.ASSETS.fetch(c.req.raw);
   return c.text('Page not found',404);
 });
-export default {fetch:app.fetch,scheduled:async(_event:unknown,env:Env)=>sweepForms(env)};
+export default app;
