@@ -2,6 +2,7 @@
   "name": "dupes-platform",
   "main": "src/worker.ts",
   "compatibility_date": "2026-10-13",
+  "triggers": {"crons": ["* * * * *"]},
   "d1_databases": [{
     "binding": "DB",
     "database_name": "dupes-platform-local",

@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
 import { z } from 'zod';
-import platform from '../../../packages/platform/src/worker.ts';
+import platform,{sweepForms} from '../../../packages/platform/src/worker.ts';
 import { d1Storage } from '../../../dupes/feedback/src/d1-storage.ts';
 import { hash,id,now } from '../../../dupes/feedback/src/auth.ts';
 import { page,voteNotice } from './pages.ts';
@@ -28,7 +28,7 @@ app.all('/api/waitlist',c=>c.json({error:'Method not allowed'},405));
 app.get('/robots.txt',c=>c.text('User-agent: *\nDisallow: /\n'));
 app.get('/health',async c=>{await d1Storage(c.env.DB).get('SELECT count(*) FROM site_waitlist');return c.json({ok:true,product:'dupes-site'});});
 async function forward(c:any) {
-  const response=await platform.fetch(c.req.raw,c.env);
+  const response=await platform.fetch(c.req.raw,c.env,c.executionCtx);
   if(c.req.path.startsWith('/i/next-dupe/')&&response.headers.get('Content-Type')?.includes('text/html')) {
     const html=(await response.text()).replace('</head>','<link rel="stylesheet" href="/board-legal.css"></head>').replace('</body>','<footer class="board-legal">'+voteNotice+'</footer></body>');
     const headers=new Headers(response.headers);headers.delete('Content-Length');return new Response(html,{status:response.status,headers});
@@ -41,4 +41,4 @@ app.get('*',async c=>{
   if(c.req.path.startsWith('/images/')||c.req.path.startsWith('/reference/')||['/styles.css','/board-legal.css','/site.js'].includes(c.req.path))return c.env.ASSETS.fetch(c.req.raw);
   return c.text('Page not found',404);
 });
-export default app;
+export default {fetch:app.fetch,scheduled:async(_event:unknown,env:Env)=>sweepForms(env)};

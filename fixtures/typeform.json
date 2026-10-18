@@ -1,0 +1,18 @@
+{
+  "id":"dupes-example-form",
+  "title":"Find your next workspace",
+  "hidden":["campaign"],
+  "variables":{"score":0},
+  "fields":[
+    {"id":"q-plan","ref":"plan","type":"multiple_choice","title":"Who will use this workspace?","properties":{"choices":[{"id":"choice-solo","ref":"solo","label":"Just me"},{"id":"choice-team","ref":"team","label":"Our team"}]},"validations":{"required":true}},
+    {"id":"q-size","ref":"size","type":"number","title":"How many people are on your team?","properties":{},"validations":{"required":true,"min_value":1,"max_value":10000}},
+    {"id":"q-goal","ref":"goal","type":"long_text","title":"What would you like to make easier?","properties":{},"validations":{"required":true,"max_length":2000}},
+    {"id":"q-email","ref":"email","type":"email","title":"Where can we reach you?","properties":{},"validations":{"required":true}}
+  ],
+  "logic":[
+    {"type":"hidden","actions":[{"action":"jump","condition":{"op":"equal","vars":[{"type":"hidden","value":"campaign"},{"type":"constant","value":"partner"}]},"details":{"to":{"type":"field","value":"size"}}}]},
+    {"type":"field","ref":"plan","actions":[{"action":"jump","condition":{"op":"is","vars":[{"type":"field","value":"plan"},{"type":"choice","value":"solo"}]},"details":{"to":{"type":"field","value":"goal"}}}]},
+    {"type":"field","ref":"size","actions":[{"action":"add","condition":{"op":"always","vars":[]},"details":{"target":{"type":"variable","value":"score"},"value":{"type":"field","value":"size"}}},{"action":"jump","condition":{"op":"and","vars":[{"op":"greater_than","vars":[{"type":"variable","value":"score"},{"type":"constant","value":20}]},{"op":"not_equal","vars":[{"type":"hidden","value":"campaign"},{"type":"constant","value":"solo"}]}]},"details":{"to":{"type":"thankyou","value":"large-team"}}}]}
+  ],
+  "thankyou_screens":[{"ref":"default","title":"Thanks. Your response is in.","properties":{"description":"A little clarity goes a long way."}},{"ref":"large-team","title":"Room for everyone.","properties":{"description":"Thanks for telling us about your team."}}]
+}

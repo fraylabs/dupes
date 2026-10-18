@@ -4,6 +4,7 @@ COPY package*.json ./
 COPY packages/cli/package.json packages/cli/package.json
 COPY packages/platform/package.json packages/platform/package.json
 COPY dupes/feedback/package.json dupes/feedback/package.json
+COPY dupes/forms/package.json dupes/forms/package.json
 RUN npm ci --omit=dev
 COPY . .
 RUN mkdir /data && chown node:node /data

@@ -19,15 +19,18 @@ export function definition(input:any):Definition {
       if(new Set(properties.choices.map((c:any)=>c.ref)).size!==properties.choices.length)fail('Choice references must be unique.');
     }
     for(const key of ['min_value','max_value','min_length','max_length','min_selection','max_selection'])if(validations[key]!==undefined&&(!Number.isFinite(validations[key])||Math.abs(validations[key])>1e9))fail('Invalid question validation.');
+    if(validations.required!==undefined&&typeof validations.required!=='boolean')fail('Required must be true or false.');
+    for(const [min,max] of [['min_value','max_value'],['min_length','max_length'],['min_selection','max_selection']])if(validations[min]!==undefined&&validations[max]!==undefined&&validations[min]>validations[max])fail('Minimum must not exceed maximum.');
     if(properties.description!==undefined&&(typeof properties.description!=='string'||properties.description.length>10000))fail('Question description is too long.');
     if(['opinion_scale','rating'].includes(f.type)&&properties.steps!==undefined&&(!Number.isInteger(properties.steps)||properties.steps<2||properties.steps>11))fail('Scales need 2–11 steps.');
     return {ref:ref(f.ref||f.id),type:f.type,title:text(f.title,2000,'Question title'),properties,validations};
   });
   const fieldRefs=new Set(fields.map(f=>f.ref));if(fieldRefs.size!==fields.length)fail('Question references must be unique.');
+  if(input.hidden!==undefined&&!Array.isArray(input.hidden))fail('Hidden fields must be a list.');
   const hidden=(input.hidden||[]).map(ref) as string[];if(hidden.length>30||new Set(hidden).size!==hidden.length)fail('Use at most 30 unique hidden fields.');
   const variables:Record<string,number>={};for(const [key,value] of Object.entries(input.variables||{})){ref(key);if(!Number.isFinite(value))fail('Variables must start with finite numbers.');variables[key]=value as number;}
   const ends=(input.thankyou_screens||[{ref:'default',title:'Thanks. Your response is in.'}]).map((e:any)=>({ref:ref(e.ref||e.id||'default'),title:text(e.title,2000,'Ending title'),properties:{description:String(e.properties?.description||'').slice(0,10000)}}));
-  const endingRefs=new Set(ends.map((e:any)=>e.ref));endingRefs.add('default');
+  const endingRefs=new Set(ends.map((e:any)=>e.ref));if(!ends.length||ends.length>100||endingRefs.size!==ends.length)fail('Use 1–100 unique thank-you screens.');endingRefs.add('default');
   const choiceRefs=new Set(fields.flatMap(f=>(f.properties.choices||[]).map((c:any)=>c.ref)));
   function operand(v:any){if(!v||!['field','hidden','variable','constant','choice'].includes(v.type))fail('Unsupported logic operand.');if(v.type==='constant'){if(!['string','number','boolean'].includes(typeof v.value)||typeof v.value==='number'&&!Number.isFinite(v.value))fail('Invalid logic constant.');}else {const set=v.type==='field'?fieldRefs:v.type==='hidden'?new Set(hidden):v.type==='choice'?choiceRefs:new Set(Object.keys(variables));if(!set.has(v.value))fail('Logic refers to a missing '+v.type+': '+String(v.value));}}
   function condition(c:any,depth=0){if(depth>12||!c||!operators.has(c.op)||!Array.isArray(c.vars)||c.vars.length>50)fail('Unsupported or excessive logic condition.');if(['and','or','not'].includes(c.op)){if(!c.vars.length||c.op==='not'&&c.vars.length!==1)fail('Invalid combined condition.');c.vars.forEach((v:any)=>condition(v,depth+1));}else{const n=c.op==='always'?0:['answered','not_answered'].includes(c.op)?1:2;if(c.vars.length!==n)fail('Invalid number of logic operands.');c.vars.forEach(operand);}}

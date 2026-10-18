@@ -1,6 +1,6 @@
 # Dupes
 
-Self-hostable alternatives to paid tools. The first is **Feedback**: boards, votes, comments, roadmap and changelog, with REST and MCP built in.
+Self-hostable alternatives to paid tools. **Feedback** brings boards, votes, comments, roadmap and changelog. **Forms** brings one-question-at-a-time forms, branching, hidden fields, responses/CSV and signed webhooks. Both have REST, MCP, self-hosted SQLite and hosted D1 modes.
 
 The prepared public install is one command (npm publication is pending):
 
@@ -12,7 +12,7 @@ For the current private checkout, use `node packages/cli/bin/dupe.mjs up feedbac
 
 Open http://localhost:3000. The command uses Docker when its daemon is available; otherwise it prepares Node dependencies and starts the same app. Node 22+ is required for the CLI. `--node` explicitly selects Node. After `npm ci`, `npx dupe` is available as the workspace binary. No registry package or image has been published.
 
-Data lives in `./data`: one SQLite database and the private `admin-password` file. Read the password locally and sign in at `/admin`; it is never logged. Alternatively set a private `ADMIN_PASSWORD` (12+ characters) on the first start. Subsequent starts retain the stored password hash. Keep the data directory private, and back it up with SQLite's backup API or while the service is stopped. Restore the complete directory before starting.
+The packaged CLI stores Feedback data in `./feedback-data/`; the source checkout uses `./data`. Inside:  one SQLite database and the private `admin-password` file. Read the password locally and sign in at `/admin`; it is never logged. Alternatively set a private `ADMIN_PASSWORD` (12+ characters) on the first start. Subsequent starts retain the stored password hash. Keep the data directory private, and back it up with SQLite's backup API or while the service is stopped. Restore the complete directory before starting.
 
 ```sh
 node packages/cli/bin/dupe.mjs list
@@ -32,9 +32,21 @@ Optional email: configure your own Resend account with `RESEND_API_KEY` and veri
 
 Embed `<script src="https://your-feedback-host/widget.js" defer></script>` in a website to add the public feedback panel. The widget uses its own origin's browser session. Sites may require allowing the script and frame in their own CSP.
 
-The core has no Node imports. SQLite and D1 run through Drizzle. Hosted instances share a D1 database with tenant-scoped reads and writes, composite keys and foreign keys. Live Workers deployment and durable rate limits are not shipped. Changelog content is safely rendered as plain text. Rich media, integrations, Canny analytics and email-based account recovery are outside this first release.
+The core has no Node imports. SQLite and D1 run through Drizzle. Hosted instances share a D1 database with tenant-scoped reads and writes, composite keys and foreign keys. Private Workers previews require a separate preview gate; durable public abuse limits are still future work. Changelog content is safely rendered as plain text. Rich media, integrations, Canny analytics and email-based account recovery are outside this first release.
 
-Verification runs on a fresh checkout on Linux: `npm run check`, then `npm run prove`. The proof starts the real CLI and service, imports the fixture twice, checks voting, privacy, SSO, merging and every MCP tool, and captures public and admin UI screenshots. It uses disposable data and never logs credentials.
+The existing Feedback proof scripts document earlier verification. Current feature checks use a running instance and synthetic data. Use `npm run check` during a normal build; never put credentials in logs.
+
+## Forms
+
+The prepared public command is `npx @dupes/cli up forms` (publication pending). From this checkout use `node packages/cli/bin/dupe.mjs up forms`. Data lives in `forms-data/` for the packaged CLI or `data/forms/` from source. Open `/admin` and use the private `admin-api-key` file, or configure `ADMIN_API_KEY` on first start.
+
+Build questions, add branching rules, save a draft and explicitly publish. Published definitions are immutable versions; submissions, hidden values and calculations are validated on the server. Export all responses to CSV or connect a signed, retried webhook. Public form links and the embed script collect responses without an account. Keep personal data private and configure appropriate retention for your use.
+
+`dupe import typeform --form FORM_ID` uses your private `TYPEFORM_API_KEY` to retrieve a definition, including supported nested logic, jumps and calculations. `--fixture fixtures/typeform.json` uses the included example. Imports stay in draft. Unsupported constructs fail before writing rather than dropping logic. This imports definitions, not response history or third-party presentation. See [Forms API](dupes/forms/API.md) and [Forms agent setup](dupes/forms/AGENTS.md).
+
+`dupe mcp forms --client codex --url <instance-url>` uses `FORMS_API_KEY` and exposes five tools for listing, reading, editing, publishing and reading responses. Hosted provisioning accepts `app: "forms"` as well as `"feedback"`.
+
+Typeform is a trademark of its owner. Dupes isn't affiliated with or endorsed by Typeform.
 
 ## Hosted platform (local development)
 
@@ -47,9 +59,9 @@ npx wrangler dev --local --config packages/platform/wrangler.jsonc
 
 The platform API uses a platform Bearer key. `POST /v1/instances` with `{ "app": "feedback", "name": "My workspace" }` returns `url`, `adminUrl`, `adminApiKey`, and `mcpEndpoint`. Save the returned key privately: it is returned only at creation. `GET /v1/instances`, `GET /v1/instances/:id`, and `DELETE /v1/instances/:id` operate only on that key's instances. Deletion permanently removes the instance's content and credentials. Usage includes requests and logical UTF-8 storage bytes, excluding shared indexes and page overhead.
 
-Set `DUPES_PLATFORM_URL` and `DUPES_PLATFORM_API_KEY` privately, then run `dupe up feedback --hosted --name "My workspace"`. The CLI saves the result in a mode-0600 file in `data/`, prints URLs and the file path, and keeps keys out of stdout. Use the returned admin key to sign in or authenticate instance REST/MCP calls. `dupe mcp feedback --url <instance-url>` prints agent configuration. HTTPS is required except for local development.
+Set `DUPES_PLATFORM_URL` and `DUPES_PLATFORM_API_KEY` privately, then run `dupe up feedback --hosted --name "My workspace"`. The CLI saves the result in a mode-0600 file in `data/`, prints URLs and the file path, and keeps keys out of stdout. Use the returned admin key to sign in or authenticate instance REST/MCP calls. `dupe mcp feedback --url <instance-url>` prints agent configuration. HTTPS is required except for local development. Private previews additionally require `DUPES_PREVIEW_TOKEN` in the CLI environment, or the `X-Dupes-Preview-Token` header for direct API calls; browsers unlock `/_preview/login`. The preview token does not replace the platform or instance key.
 
-`npm run prove:hosted` exercises local Wrangler/workerd and D1 provisioning, metering, deletion, tenant isolation, CLI and browser login. Local configuration uses a placeholder D1 ID; it does not provision or deploy Cloudflare resources. Hosted email delivery is not configured; the optional Resend sender currently runs in self-hosted Node mode.
+The earlier `prove:hosted` script documents local Wrangler/workerd verification. Current features are checked in a real running instance. Local configuration uses a placeholder D1 ID; it does not provision or deploy Cloudflare resources. Hosted email delivery is not configured; the optional Resend sender currently runs in self-hosted Node mode.
 
 Canny is a trademark of its owner. Dupes isn't affiliated with or endorsed by Canny.
 
