@@ -1,0 +1,11 @@
+CREATE TABLE site_waitlist (email TEXT PRIMARY KEY, created TEXT NOT NULL, consent_version TEXT NOT NULL, removal_hash TEXT NOT NULL UNIQUE);
+INSERT INTO instances(id,owner_hash,app,name,created) VALUES('next-dupe','unclaimed-dogfood','feedback','The next dupe','2026-10-18T00:00:00Z');
+INSERT INTO hosted_boards(tenant_id,id,name,description) VALUES('next-dupe','candidates','The next dupe','Which paid tool should have a free, self-hostable alternative?');
+INSERT INTO hosted_posts(tenant_id,id,board_id,title,details,status,created) VALUES('next-dupe','candidate-typeform','candidates','Typeform','Forms and surveys. Vote to help choose what we build next.','open','2026-10-18T00:00:00Z');
+INSERT INTO hosted_posts(tenant_id,id,board_id,title,details,status,created) VALUES('next-dupe','candidate-calendly','candidates','Calendly','Scheduling and bookings. Vote to help choose what we build next.','open','2026-10-18T00:00:00Z');
+INSERT INTO hosted_posts(tenant_id,id,board_id,title,details,status,created) VALUES('next-dupe','candidate-linktree','candidates','Linktree','A home for your links. Vote to help choose what we build next.','open','2026-10-18T00:00:00Z');
+INSERT INTO hosted_posts(tenant_id,id,board_id,title,details,status,created) VALUES('next-dupe','candidate-statuspage','candidates','Statuspage','Service status and incident updates. Vote to help choose what we build next.','open','2026-10-18T00:00:00Z');
+INSERT INTO hosted_posts(tenant_id,id,board_id,title,details,status,created) VALUES('next-dupe','candidate-mailchimp','candidates','Mailchimp','Email campaigns. Vote to help choose what we build next.','open','2026-10-18T00:00:00Z');
+INSERT INTO hosted_posts(tenant_id,id,board_id,title,details,status,created) VALUES('next-dupe','candidate-hotjar','candidates','Hotjar','Website insights. Vote to help choose what we build next.','open','2026-10-18T00:00:00Z');
+INSERT INTO hosted_posts(tenant_id,id,board_id,title,details,status,created) VALUES('next-dupe','candidate-loom','candidates','Loom','Screen recordings. Vote to help choose what we build next.','open','2026-10-18T00:00:00Z');
+INSERT INTO hosted_posts(tenant_id,id,board_id,title,details,status,created) VALUES('next-dupe','candidate-docsend','candidates','DocSend','Document sharing. Vote to help choose what we build next.','open','2026-10-18T00:00:00Z');

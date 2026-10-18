@@ -48,3 +48,7 @@ The platform API uses a platform Bearer key. `POST /v1/instances` with `{ "app":
 Set `DUPES_PLATFORM_URL` and `DUPES_PLATFORM_API_KEY` privately, then run `dupe up feedback --hosted --name "My workspace"`. The CLI saves the result in a mode-0600 file in `data/`, prints URLs and the file path, and keeps keys out of stdout. Use the returned admin key to sign in or authenticate instance REST/MCP calls. `dupe mcp feedback --url <instance-url>` prints agent configuration. HTTPS is required except for local development.
 
 `npm run prove:hosted` exercises local Wrangler/workerd and D1 provisioning, metering, deletion, tenant isolation, CLI and browser login. Local configuration uses a placeholder D1 ID; it does not provision or deploy Cloudflare resources. Hosted email delivery is not configured; the optional Resend sender currently runs in self-hosted Node mode.
+
+Canny is a trademark of its owner. Dupes isn't affiliated with or endorsed by Canny.
+
+The original apps and platform are AGPL-3.0-only; the CLI is Apache-2.0. See LICENSE, packages/cli/LICENSE and TRADEMARKS.md. The private website preview is in sites/dupes.sh.

@@ -10,7 +10,8 @@
     "start": "tsx dupes/feedback/src/node.ts",
     "check": "tsc --noEmit",
     "prove": "tsx scripts/prove.ts",
-    "prove:hosted": "tsx scripts/prove-hosted.ts"
+    "prove:hosted": "tsx scripts/prove-hosted.ts",
+    "prove:site": "tsx scripts/prove-site.ts"
   },
   "dependencies": {
     "@hono/node-server": "^1.19.0",
@@ -30,5 +31,6 @@
   },
   "engines": {
     "node": ">=22"
-  }
+  },
+  "license": "AGPL-3.0-only"
 }

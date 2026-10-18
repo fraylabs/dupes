@@ -1,0 +1,164 @@
+[
+  {
+    "repo": "storytold/artcraft",
+    "commit": "d4e4ac69bbd93d237eaf5d0260bc6a5ff3a5e373",
+    "license": "MIT OR Apache-2.0",
+    "checked": "2026-10-18",
+    "files": [
+      {
+        "file": "LICENSE-MIT",
+        "url": "https://raw.githubusercontent.com/storytold/artcraft/d4e4ac69bbd93d237eaf5d0260bc6a5ff3a5e373/LICENSE-MIT",
+        "sha256": "8ce608753585920ec5b61e8f324b0b205ca345e663a92850f4ef0b4240c3f49c"
+      },
+      {
+        "file": "LICENSE-APACHE",
+        "url": "https://raw.githubusercontent.com/storytold/artcraft/d4e4ac69bbd93d237eaf5d0260bc6a5ff3a5e373/LICENSE-APACHE",
+        "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594"
+      }
+    ]
+  },
+  {
+    "repo": "storytold/photocraft",
+    "commit": "8407d9ccb125af52944fca9d228383459f94aaef",
+    "license": "MIT OR Apache-2.0",
+    "checked": "2026-10-18",
+    "files": [
+      {
+        "file": "LICENSE-MIT",
+        "url": "https://raw.githubusercontent.com/storytold/photocraft/8407d9ccb125af52944fca9d228383459f94aaef/LICENSE-MIT",
+        "sha256": "1a8f66d8a86b146f5336fa0d4b1186576c8aa98e60823080c85c7811cfd810af"
+      },
+      {
+        "file": "LICENSE-APACHE",
+        "url": "https://raw.githubusercontent.com/storytold/photocraft/8407d9ccb125af52944fca9d228383459f94aaef/LICENSE-APACHE",
+        "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594"
+      }
+    ]
+  },
+  {
+    "repo": "storytold/filmcraft",
+    "commit": "4a69a038d32761f604b3c7e4845b21fb40b3cbe4",
+    "license": "MIT OR Apache-2.0",
+    "checked": "2026-10-18",
+    "files": [
+      {
+        "file": "LICENSE-MIT",
+        "url": "https://raw.githubusercontent.com/storytold/filmcraft/4a69a038d32761f604b3c7e4845b21fb40b3cbe4/LICENSE-MIT",
+        "sha256": "d2d8416f0883694c23b473e26372506e9e11f5f41b55a92b7388dab921d9a207"
+      },
+      {
+        "file": "LICENSE-APACHE",
+        "url": "https://raw.githubusercontent.com/storytold/filmcraft/4a69a038d32761f604b3c7e4845b21fb40b3cbe4/LICENSE-APACHE",
+        "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594"
+      }
+    ]
+  },
+  {
+    "repo": "storytold/figcraft",
+    "commit": "47438dd4a2e8b49a7e6bb3dfd480262dadc37f12",
+    "license": "MIT OR Apache-2.0",
+    "checked": "2026-10-18",
+    "files": [
+      {
+        "file": "LICENSE-MIT",
+        "url": "https://raw.githubusercontent.com/storytold/figcraft/47438dd4a2e8b49a7e6bb3dfd480262dadc37f12/LICENSE-MIT",
+        "sha256": "360c12b61568ef50808e731c98ae84110ea6f674dc34ac1ecb05d7abb9a6079a"
+      },
+      {
+        "file": "LICENSE-APACHE",
+        "url": "https://raw.githubusercontent.com/storytold/figcraft/47438dd4a2e8b49a7e6bb3dfd480262dadc37f12/LICENSE-APACHE",
+        "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594"
+      }
+    ]
+  },
+  {
+    "repo": "storytold/vectorcraft",
+    "commit": "5e6810655ff646b668a5607996e3b3d9e9bdfe88",
+    "license": "MIT OR Apache-2.0",
+    "checked": "2026-10-18",
+    "files": [
+      {
+        "file": "LICENSE-MIT",
+        "url": "https://raw.githubusercontent.com/storytold/vectorcraft/5e6810655ff646b668a5607996e3b3d9e9bdfe88/LICENSE-MIT",
+        "sha256": "8b6025dc4b707e0fb08b9c2054096f1be3ae61529399aa2c348dec676562dc71"
+      },
+      {
+        "file": "LICENSE-APACHE",
+        "url": "https://raw.githubusercontent.com/storytold/vectorcraft/5e6810655ff646b668a5607996e3b3d9e9bdfe88/LICENSE-APACHE",
+        "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594"
+      }
+    ]
+  },
+  {
+    "repo": "storytold/lightcraft",
+    "commit": "20ccedf56e64c9302d67d68e185daba54acf7167",
+    "license": "MIT OR Apache-2.0",
+    "checked": "2026-10-18",
+    "files": [
+      {
+        "file": "LICENSE-MIT",
+        "url": "https://raw.githubusercontent.com/storytold/lightcraft/20ccedf56e64c9302d67d68e185daba54acf7167/LICENSE-MIT",
+        "sha256": "1470a5d44a88a9d385d9530763ea411ca199670d07f561a61d54256323972b92"
+      },
+      {
+        "file": "LICENSE-APACHE",
+        "url": "https://raw.githubusercontent.com/storytold/lightcraft/20ccedf56e64c9302d67d68e185daba54acf7167/LICENSE-APACHE",
+        "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594"
+      }
+    ]
+  },
+  {
+    "repo": "storytold/pdfcraft",
+    "commit": "645016addcfb9078c557f0189559ab47cdcee057",
+    "license": "MIT OR Apache-2.0",
+    "checked": "2026-10-18",
+    "files": [
+      {
+        "file": "LICENSE-MIT",
+        "url": "https://raw.githubusercontent.com/storytold/pdfcraft/645016addcfb9078c557f0189559ab47cdcee057/LICENSE-MIT",
+        "sha256": "cd7032ea33b71427f188e34ffb4aee9d6868a57fd196037c5c8b2be03a2a0352"
+      },
+      {
+        "file": "LICENSE-APACHE",
+        "url": "https://raw.githubusercontent.com/storytold/pdfcraft/645016addcfb9078c557f0189559ab47cdcee057/LICENSE-APACHE",
+        "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594"
+      }
+    ]
+  },
+  {
+    "repo": "storytold/effectcraft",
+    "commit": "f36b2b3e6bd121dc52b00503cdf8d60f42ac242a",
+    "license": "MIT OR Apache-2.0",
+    "checked": "2026-10-18",
+    "files": [
+      {
+        "file": "LICENSE-MIT",
+        "url": "https://raw.githubusercontent.com/storytold/effectcraft/f36b2b3e6bd121dc52b00503cdf8d60f42ac242a/LICENSE-MIT",
+        "sha256": "7b6db9a363688683feacdf9b528f059637f2e5d2edbacd8720fc9b26781c9abe"
+      },
+      {
+        "file": "LICENSE-APACHE",
+        "url": "https://raw.githubusercontent.com/storytold/effectcraft/f36b2b3e6bd121dc52b00503cdf8d60f42ac242a/LICENSE-APACHE",
+        "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594"
+      }
+    ]
+  },
+  {
+    "repo": "storytold/designcraft",
+    "commit": "7cb8b12507def48fb9346e5004340b5e8e4cfcb7",
+    "license": "MIT OR Apache-2.0",
+    "checked": "2026-10-18",
+    "files": [
+      {
+        "file": "LICENSE-MIT",
+        "url": "https://raw.githubusercontent.com/storytold/designcraft/7cb8b12507def48fb9346e5004340b5e8e4cfcb7/LICENSE-MIT",
+        "sha256": "d543d31e3120c64b70abc77cfadcbdc2249c78de1c8efa2e3d62540bb79de816"
+      },
+      {
+        "file": "LICENSE-APACHE",
+        "url": "https://raw.githubusercontent.com/storytold/designcraft/7cb8b12507def48fb9346e5004340b5e8e4cfcb7/LICENSE-APACHE",
+        "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594"
+      }
+    ]
+  }
+]

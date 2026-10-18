@@ -13,3 +13,5 @@ Development: `npm ci`, `npm run check`. `npm run prove` exercises a real disposa
 Canny migration: `dupe import canny --fixture fixtures/canny.json`, or supply `CANNY_API_KEY` privately. Current documented API versions and pagination are recorded in `API.md`. Keep board privacy and comment privacy, statuses, IDs and aggregate vote counts intact. The importer fetches everything before a single transaction; failures must not leave a partial migration.
 
 Hosted setup: `dupe up feedback --hosted` uses private `DUPES_PLATFORM_URL` and `DUPES_PLATFORM_API_KEY`. The result file in `data/` contains the instance key; keep it private. Use the returned instance URL with `dupe mcp feedback --url`, and its admin key as `FEEDBACK_API_KEY`. Each instance has separate data, keys and browser sessions. See the root README for local Wrangler provisioning.
+
+Canny is a trademark of its owner. Dupes isn't affiliated with or endorsed by Canny.
