@@ -1,12 +1,14 @@
 import { Hono } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
 import { z } from 'zod';
-import platform from '../../../packages/platform/src/worker.ts';
+import platform,{sweepForms} from '../../../packages/platform/src/worker.ts';
 import { d1Storage } from '../../../dupes/feedback/src/d1-storage.ts';
 import { hash,id,now } from '../../../dupes/feedback/src/auth.ts';
 import { page,voteNotice } from './pages.ts';
-type Env={DB:Parameters<typeof d1Storage>[0];ASSETS:{fetch(request:Request):Promise<Response>};PLATFORM_API_KEYS:string;PUBLIC_ORIGIN?:string;SSO_SECRET?:string};
+import { previewGate } from './preview-gate.ts';
+type Env={DB:Parameters<typeof d1Storage>[0];ASSETS:{fetch(request:Request):Promise<Response>};PLATFORM_API_KEYS:string;PREVIEW_TOKEN:string;PUBLIC_ORIGIN?:string;SSO_SECRET?:string};
 const app=new Hono<{Bindings:Env}>();
+app.use('*',previewGate);
 app.use('*',async(c,next)=>{await next();c.header('X-Robots-Tag','noindex, nofollow');c.header('X-Content-Type-Options','nosniff');c.header('Referrer-Policy','strict-origin-when-cross-origin');if(!c.req.path.startsWith('/i/')&&!c.req.path.startsWith('/v1/'))c.header('Content-Security-Policy',"default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; frame-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'");});
 app.onError((e,c)=>c.json({error:e instanceof z.ZodError||e instanceof SyntaxError?'Please check your form.':'We could not save this request. Please try again.'},e instanceof z.ZodError||e instanceof SyntaxError?400:500));
 app.use('/api/waitlist',bodyLimit({maxSize:4096}));
@@ -39,4 +41,4 @@ app.get('*',async c=>{
   if(c.req.path.startsWith('/images/')||c.req.path.startsWith('/reference/')||['/styles.css','/board-legal.css','/site.js'].includes(c.req.path))return c.env.ASSETS.fetch(c.req.raw);
   return c.text('Page not found',404);
 });
-export default app;
+export default {fetch:app.fetch,scheduled:async(_event:unknown,env:Env)=>sweepForms(env)};
