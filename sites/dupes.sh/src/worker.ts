@@ -28,7 +28,7 @@ app.get('/health',async c=>{await d1Storage(c.env.DB).get('SELECT count(*) FROM 
 async function forward(c:any) {
   const response=await platform.fetch(c.req.raw,c.env);
   if(c.req.path.startsWith('/i/next-dupe/')&&response.headers.get('Content-Type')?.includes('text/html')) {
-    const html=(await response.text()).replace('</head>','<link rel="stylesheet" href="/styles.css"></head>').replace('</body>','<footer class="board-legal">'+voteNotice+'</footer></body>');
+    const html=(await response.text()).replace('</head>','<link rel="stylesheet" href="/board-legal.css"></head>').replace('</body>','<footer class="board-legal">'+voteNotice+'</footer></body>');
     const headers=new Headers(response.headers);headers.delete('Content-Length');return new Response(html,{status:response.status,headers});
   }
   return response;
@@ -36,7 +36,7 @@ async function forward(c:any) {
 app.all('/i/*',forward);app.all('/v1/*',forward);
 app.get('*',async c=>{
   const html=page(c.req.path);if(html){c.header('Cache-Control','no-store');return c.html(html);}
-  if(c.req.path.startsWith('/images/')||c.req.path.startsWith('/reference/')||['/styles.css','/site.js'].includes(c.req.path))return c.env.ASSETS.fetch(c.req.raw);
+  if(c.req.path.startsWith('/images/')||c.req.path.startsWith('/reference/')||['/styles.css','/board-legal.css','/site.js'].includes(c.req.path))return c.env.ASSETS.fetch(c.req.raw);
   return c.text('Page not found',404);
 });
 export default app;
