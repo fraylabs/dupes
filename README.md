@@ -65,4 +65,4 @@ The earlier `prove:hosted` script documents local Wrangler/workerd verification.
 
 Canny is a trademark of its owner. Dupes isn't affiliated with or endorsed by Canny.
 
-The original apps and platform are AGPL-3.0-only; the CLI is Apache-2.0. See LICENSE, packages/cli/LICENSE and TRADEMARKS.md. The private website preview is in sites/dupes.sh.
+The original apps and platform are AGPL-3.0-only; the CLI is Apache-2.0. See LICENSE, packages/cli/LICENSE and TRADEMARKS.md. The website is in sites/dupes.sh.
