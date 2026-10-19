@@ -12,7 +12,7 @@ export class Feedback {
     if(!admin)clauses.push('b.private=0');
     if(filters.board){clauses.push('p.board_id=?');params.push(filters.board);}
     if(filters.status){clauses.push('p.status=?');params.push(statusSchema.parse(filters.status));}
-    if(filters.q){clauses.push('(p.title LIKE ? ESCAPE \'\\\' OR p.details LIKE ? ESCAPE \'\\\')');const q='%'+filters.q.replace(/[\\%_]/g,'\\$&')+'%';params.push(q,q);}
+    if(filters.q){clauses.push('(instr(lower(p.title),lower(?))>0 OR instr(lower(p.details),lower(?))>0)');params.push(filters.q,filters.q);}
     const order=filters.sort==='new'?'p.created DESC':'votes DESC,p.created DESC';
     params.push(Math.min(Math.max(filters.limit||50,1),200),Math.max(filters.offset||0,0));
     const rows=await this.db.all(`SELECT p.*,b.name board_name,u.name author_name,p.imported_votes+(SELECT count(*) FROM votes WHERE post_id=p.id) votes,(SELECT count(*) FROM comments WHERE post_id=p.id AND private=0) comments FROM posts p JOIN boards b ON b.id=p.board_id LEFT JOIN users u ON u.id=p.author_id WHERE ${clauses.join(' AND ')} ORDER BY ${order} LIMIT ? OFFSET ?`,params);

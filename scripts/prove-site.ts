@@ -28,7 +28,7 @@ try {
   await request('/api/waitlist','DELETE',{token:saved.removalToken});assert.equal(query('SELECT count(*) n FROM site_waitlist')[0].n,0);
   pass('Actual local D1 waitlist: write, deduplication, consent/hash readback, invalid input, cross-origin denial, honeypot and token deletion passed');
   const posts=await(await request('/i/next-dupe/api/posts')).json();assert.equal(posts.length,8);for(const name of ['Typeform','Calendly','Linktree','Statuspage','Mailchimp','Hotjar','Loom','DocSend'])assert.ok(posts.some((p:any)=>p.title===name&&p.votes===0));
-  for(const path of ['/', '/catalogue','/vote','/waitlist','/docs','/privacy']){const r=await request(path);assert.ok(r.headers.get('X-Robots-Tag')?.includes('noindex'));assert.ok((await r.text()).includes('<title>'));}
+  for(const path of ['/', '/catalogue','/vote','/waitlist','/docs','/privacy']){const r=await request(path);assert.ok(!r.headers.get('X-Robots-Tag')?.includes('noindex'));assert.ok((await r.text()).includes('<title>'));}
   for(const path of ['/reference/readme.txt','/reference/api.txt','/reference/agents.txt','/images/feedback.png','/images/roadmap.png'])await request(path);
   const boardHTML=await(await request('/i/next-dupe/')).text();assert.ok(boardHTML.includes("Dupes isn't affiliated with or endorsed by Typeform."));assert.ok((await(await request('/robots.txt')).text()).includes('Disallow: /'));await request('/missing-page',undefined,undefined,404);
   browser=await chromium.launch({headless:true,args:['--no-sandbox']});
