@@ -160,5 +160,18 @@
         "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594"
       }
     ]
+  },
+  {
+    "repo": "macro-inc/macro",
+    "commit": "d57b6a63569618ccd2fba3e35813f3134021f864",
+    "license": "AGPL-3.0",
+    "checked": "2026-10-19",
+    "files": [
+      {
+        "file": "LICENSE.txt",
+        "url": "https://raw.githubusercontent.com/macro-inc/macro/d57b6a63569618ccd2fba3e35813f3134021f864/LICENSE.txt",
+        "sha256": "b1e2de6a24d704320f17b92555c0ee445f2b2af16dabfac6ec26d3fdb38588d5"
+      }
+    ]
   }
 ]
