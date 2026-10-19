@@ -51,3 +51,7 @@ An unauthenticated API/health/asset request returns 401. Browser GETs accepting 
 API clients send `X-Dupes-Preview-Token`; this gate token never replaces platform or instance Bearer authentication. The CLI reads it from `DUPES_PREVIEW_TOKEN`. Browser reviewers enter it into the private login form. Verify both header and browser-cookie flows on the running preview, then check public board pages, admin login, waitlist and separate platform provisioning. Use only synthetic data for Forms branches, responses, CSV, embeds and webhooks. Never log returned provisioning keys.
 
 Canny is a trademark of its owner. Dupes isn't affiliated with or endorsed by Canny.
+
+## Workspace keys and shared MCP
+
+Apply additive site migration `0004_workspace_keys.sql` before deploying workspace-capable source. Existing env bootstrap keys preserve ownership. Issued keys can live as SHA-256 hashes in `workspace_keys`, resolving to an opaque owner ID, so future signup does not require adding env secrets. No issuance endpoint is exposed yet. Keep all key values private. `/v1/workspace`, `/v1/mcp` and `/v1/search` use platform Bearer auth and include private owned app content. Use site migrations only, not the parallel standalone-platform migration set. See `packages/platform/WORKSPACE.md`.

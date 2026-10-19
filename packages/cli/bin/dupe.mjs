@@ -19,8 +19,20 @@ function image(){run('docker',['build','-t',imageTag,root]);}
 function ensureNode(){try{require.resolve('tsx');}catch{console.log('Preparing application dependencies…');run('npm',[existsSync(resolve(root,'package-lock.json'))?'ci':'install']);}}
 function node(script,params=[],env={}) {ensureNode();const child=spawn(process.execPath,['--import',require.resolve('tsx'),resolve(root,script),...params],{cwd:root,stdio:'inherit',env:{...process.env,DATA_DIR:data,...env}});for(const signal of ['SIGINT','SIGTERM'])process.once(signal,()=>child.kill(signal));child.on('error',()=>{console.error('Could not start application');process.exit(1);});child.on('exit',(code,signal)=>process.exit(code??(signal?130:1)));}
 function dockerArgs(){mkdirSync(data,{recursive:true,mode:0o700});return ['run','--rm','--init',...(process.getuid?['--user',process.getuid()+':'+process.getgid()]:[]),'-v',data+':/data'];}
+function platformURL(){const value=opt('--platform')||process.env.DUPES_PLATFORM_URL;if(!value)throw Error('Set DUPES_PLATFORM_URL or --platform <url>.');const url=new URL(value);if(url.protocol!=='https:'&&!(url.protocol==='http:'&&['localhost','127.0.0.1','[::1]'].includes(url.hostname)))throw Error('Hosted access requires HTTPS (loopback HTTP allowed for development).');if(url.username||url.password)throw Error('Pass credentials through environment variables.');return url;}
 try {
   if(command==='list'){console.log('feedback   Boards, voting, roadmap, changelog, REST + MCP.\nforms      One question at a time, branching, responses, webhooks, REST + MCP.');}
+  else if(command==='ls') {
+    const url=platformURL(),key=process.env.DUPES_PLATFORM_API_KEY;if(!key)throw Error('Set DUPES_PLATFORM_API_KEY privately.');
+    let offset=0,total=0;
+    for(;;){const endpoint=new URL('/v1/workspace',url);endpoint.searchParams.set('offset',String(offset));endpoint.searchParams.set('limit','200');
+      const response=await fetch(endpoint,{redirect:'error',headers:{Authorization:'Bearer '+key,...(process.env.DUPES_PREVIEW_TOKEN?{'X-Dupes-Preview-Token':process.env.DUPES_PREVIEW_TOKEN}:{})},signal:AbortSignal.timeout(30000)});
+      if(!response.ok)throw Error('Workspace returned HTTP '+response.status);const page=await response.json();if(!Array.isArray(page.instances))throw Error('Invalid workspace result');
+      for(const row of page.instances){const clean=value=>String(value).replace(/[\x00-\x1f\x7f-\x9f]/g,' ');console.log([row.id,row.app,row.name,row.url].map(clean).join('\t'));total++;}
+      if(page.instances.length<200)break;offset+=200;
+    }
+    if(!total)console.log('No hosted instances. Use dupe up feedback|forms --hosted.');
+  }
   else if(command==='up'&&['feedback','forms'].includes(product)) {
     if(args.includes('--hosted')) {
       const platform=opt('--platform')||process.env.DUPES_PLATFORM_URL;
@@ -44,10 +56,11 @@ try {
     const fixture=opt('--fixture'),key=opt('--key')||process.env.TYPEFORM_API_KEY,formId=opt('--form');if(!fixture&&(!key||!formId))throw Error('Set TYPEFORM_API_KEY privately and --form <id>, or use --fixture <definition.json>.');
     if(docker()){image();const flags=dockerArgs();if(fixture)flags.push('-v',resolve(fixture)+':/import/definition.json:ro');else flags.push('-e','TYPEFORM_API_KEY');run('docker',[...flags,imageTag,'node','--import','tsx','dupes/forms/src/import-cli.ts',...(fixture?['--fixture','/import/definition.json']:['--form',formId])],{env:{...process.env,...(key?{TYPEFORM_API_KEY:key}:{})}});}
     else node('dupes/forms/src/import-cli.ts',fixture?['--fixture',resolve(fixture)]:['--form',formId],key?{TYPEFORM_API_KEY:key}:{});
-  }else if(command==='mcp'&&['feedback','forms'].includes(product)) {
-    const url=(opt('--url')||'http://localhost:'+port).replace(/\/$/,'')+'/mcp';const client=opt('--client')||'claude';
-    const keyEnv=appId==='forms'?'FORMS_API_KEY':'FEEDBACK_API_KEY';
-    if(client==='codex')console.log('[mcp_servers.'+appId+']\nurl = '+JSON.stringify(url)+'\nbearer_token_env_var = '+JSON.stringify(keyEnv)+(process.env.DUPES_PREVIEW_TOKEN?'\nenv_http_headers = { "X-Dupes-Preview-Token" = "DUPES_PREVIEW_TOKEN" }':''));
-    else console.log(JSON.stringify({mcpServers:{[appId]:{...(client==='claude'?{type:'http'}:{}),url,headers:{...(process.env.DUPES_PREVIEW_TOKEN?{'X-Dupes-Preview-Token':client==='cursor'?'${env:DUPES_PREVIEW_TOKEN}':'${DUPES_PREVIEW_TOKEN}'}:{}),Authorization:client==='cursor'?'Bearer ${env:'+keyEnv+'}':'Bearer ${'+keyEnv+'}'}}}},null,2));
-  }else {console.log('dupe list\ndupe up feedback|forms [--node] [--hosted]\ndupe import canny --fixture <snapshot.json>\ndupe import typeform --form <id> (TYPEFORM_API_KEY privately)\ndupe import typeform --fixture <definition.json>\ndupe mcp feedback|forms [--client claude|codex|cursor] [--url <instance-url>]');if(command)process.exitCode=1;}
+  }else if(command==='mcp'&&['feedback','forms','workspace'].includes(product)) {
+    const workspace=product==='workspace',server=workspace?'dupes':appId;
+    const url=workspace?new URL('/v1/mcp',platformURL()).href:(opt('--url')||'http://localhost:'+port).replace(/\/$/,'')+'/mcp';const client=opt('--client')||'claude';
+    const keyEnv=workspace?'DUPES_PLATFORM_API_KEY':appId==='forms'?'FORMS_API_KEY':'FEEDBACK_API_KEY';
+    if(client==='codex')console.log('[mcp_servers.'+server+']\nurl = '+JSON.stringify(url)+'\nbearer_token_env_var = '+JSON.stringify(keyEnv)+(process.env.DUPES_PREVIEW_TOKEN?'\nenv_http_headers = { "X-Dupes-Preview-Token" = "DUPES_PREVIEW_TOKEN" }':''));
+    else console.log(JSON.stringify({mcpServers:{[server]:{...(client==='claude'?{type:'http'}:{}),url,headers:{...(process.env.DUPES_PREVIEW_TOKEN?{'X-Dupes-Preview-Token':client==='cursor'?'${env:DUPES_PREVIEW_TOKEN}':'${DUPES_PREVIEW_TOKEN}'}:{}),Authorization:client==='cursor'?'Bearer ${env:'+keyEnv+'}':'Bearer ${'+keyEnv+'}'}}}},null,2));
+  }else {console.log('dupe list\ndupe ls [--platform <url>]\ndupe up feedback|forms [--node] [--hosted]\ndupe import canny --fixture <snapshot.json>\ndupe import typeform --form <id> (TYPEFORM_API_KEY privately)\ndupe import typeform --fixture <definition.json>\ndupe mcp feedback|forms|workspace [--client claude|codex|cursor] [--url <instance-url>]');if(command)process.exitCode=1;}
 }catch(e){console.error(e.message||'Command failed');process.exitCode=1;}

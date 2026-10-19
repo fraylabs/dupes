@@ -15,3 +15,5 @@ The launcher is Apache-2.0. Bundled application source in `runtime/` is AGPL-3.0
 Canny is a trademark of its owner. Dupes isn't affiliated with or endorsed by Canny.
 
 Typeform is a trademark of its owner. Dupes isn't affiliated with or endorsed by Typeform.
+
+`dupe ls` lists hosted Feedback and Forms together using your platform environment. `dupe mcp workspace --client claude|codex|cursor` prints one agent configuration for all owned instances plus cross-app search. It references `DUPES_PLATFORM_API_KEY` privately; per-instance MCP configurations still work. See the platform workspace documentation for app-prefixed tool names and instance scoping.

@@ -66,3 +66,7 @@ The earlier `prove:hosted` script documents local Wrangler/workerd verification.
 Canny is a trademark of its owner. Dupes isn't affiliated with or endorsed by Canny.
 
 The original apps and platform are AGPL-3.0-only; the CLI is Apache-2.0. See LICENSE, packages/cli/LICENSE and TRADEMARKS.md. The website is in sites/dupes.sh.
+
+## One hosted workspace
+
+A platform key owns Feedback and Forms together. Use `dupe ls` to list its instances, and `dupe mcp workspace --client codex` to connect an agent once. The shared `/v1/mcp` provides app tools plus cross-app search, including private responses. Each call checks instance ownership; per-instance endpoints remain available. D1-issued keys support future self-serve signup without environment changes. See [workspace API and key storage](packages/platform/WORKSPACE.md).

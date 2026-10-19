@@ -3,11 +3,13 @@ import { bodyLimit } from 'hono/body-limit';
 import { z } from 'zod';
 import { d1Storage } from '../../../dupes/feedback/src/d1-storage.ts';
 import { createApp } from '../../../dupes/feedback/src/app.ts';
-import { hash,id,now,equal } from '../../../dupes/feedback/src/auth.ts';
+import { hash,id,now } from '../../../dupes/feedback/src/auth.ts';
 import type { Storage,Statement } from '../../../dupes/feedback/src/storage.ts';
 import { tenantStorage,tenantTables,tenantStatement } from './tenant-storage.ts';
 import { createFormsApp } from '../../../dupes/forms/src/app.ts';
 import { deliverPending,publicFetch,type Delivery } from '../../../dupes/forms/src/webhooks.ts';
+import { ownedInstances,pagination,crossAppSearch,workspaceRPC } from './workspace.ts';
+import { platformOwner } from './workspace-auth.ts';
 type WebhookBinding={WEBHOOK_RECEIVER?:{fetch(request:Request):Promise<Response>};WEBHOOK_RECEIVER_ORIGIN?:string};
 type Env=WebhookBinding&{DB:Parameters<typeof d1Storage>[0];PLATFORM_API_KEYS:string;PUBLIC_ORIGIN?:string;SSO_SECRET?:string};
 function webhookDelivery(env:WebhookBinding):Delivery|undefined {
@@ -27,12 +29,24 @@ platform.get('/health',async c=>{await c.get('db').get('SELECT 1');return c.json
 platform.use('/v1/*',async(c,next)=>{
   const bearer=c.req.header('Authorization')?.match(/^Bearer (.+)$/)?.[1];
   if(!bearer)return c.json({error:'Platform API key required'},401);
-  const digest=await hash(bearer);const configured=(c.env.PLATFORM_API_KEYS||'').split(',').map(v=>v.trim()).filter(v=>v.length>=32);
-  if(!configured.length)return c.json({error:'Platform provisioning is not configured'},503);
-  if(!(await Promise.all(configured.map(async key=>equal(digest,await hash(key))))).some(Boolean))return c.json({error:'Platform API key not recognised'},401);
-  c.set('owner',digest);await next();
+  const owner=await platformOwner(c.get('db'),c.env.PLATFORM_API_KEYS,bearer);
+  if(!owner)return c.json({error:'Platform API key not recognised'},401);
+  c.set('owner',owner);await next();
 });
 function location(instance:Instance,origin:string){const url=origin+'/i/'+instance.id;return {id:instance.id,app:instance.app,name:instance.name,created:instance.created,url,adminUrl:url+'/admin',mcpEndpoint:url+'/mcp'};}
+platform.get('/v1/workspace',async c=>c.json({mcpEndpoint:(c.env.PUBLIC_ORIGIN||new URL(c.req.url).origin)+'/v1/mcp',instances:await ownedInstances(c.get('db'),c.get('owner'),c.env.PUBLIC_ORIGIN||new URL(c.req.url).origin,c.req.query()),pagination:{limit:pagination.parse(c.req.query()).limit,offset:pagination.parse(c.req.query()).offset}}));
+platform.get('/v1/search',async c=>{
+  const q=c.req.query();
+  try{return c.json(await crossAppSearch(c.get('db'),c.get('owner'),c.env.PUBLIC_ORIGIN||new URL(c.req.url).origin,{q:q.q,...(q.instanceId?{instanceId:q.instanceId}:{}),...(q.limit?{limit:Number(q.limit)}:{}),...(q.offset?{offset:Number(q.offset)}:{})}));}
+  catch(e){if(e instanceof Error&&e.message==='Instance not found')return c.json({error:'Instance not found'},404);throw e;}
+});
+platform.post('/v1/mcp',async c=>{
+  let body;try{body=await c.req.json();}catch{return c.json({jsonrpc:'2.0',id:null,error:{code:-32700,message:'Parse error'}},400);}
+  const result=await workspaceRPC(c.get('db'),c.get('owner'),c.env.PUBLIC_ORIGIN||new URL(c.req.url).origin,body);
+  return result?c.json(result):c.body(null,202);
+});
+platform.get('/v1/mcp',c=>c.json({error:'Use POST for this stateless MCP endpoint'},405));
+platform.delete('/v1/mcp',c=>c.body(null,204));
 async function usage(db:Storage,instance:Instance) {
   // Logical UTF-8 payload bytes, not allocated SQLite page size. Cheap exact
   // per-tenant content metering on management reads; shared page overhead excluded.
@@ -58,7 +72,7 @@ platform.post('/v1/instances',async c=>{
   await c.get('db').batch(ops);
   return c.json({...location(instance,c.env.PUBLIC_ORIGIN||new URL(c.req.url).origin),adminApiKey,usage:{requests:0,storageBytes:(await usage(c.get('db'),instance)).storageBytes}},201);
 });
-platform.get('/v1/instances',async c=>{const rows=await c.get('db').all<Instance>('SELECT * FROM instances WHERE owner_hash=? ORDER BY created DESC LIMIT 200',[c.get('owner')]);return c.json(await Promise.all(rows.map(async instance=>({...location(instance,c.env.PUBLIC_ORIGIN||new URL(c.req.url).origin),usage:await usage(c.get('db'),instance)}))));});
+platform.get('/v1/instances',async c=>{const {limit,offset}=pagination.parse(c.req.query());const rows=await c.get('db').all<Instance>('SELECT * FROM instances WHERE owner_hash=? ORDER BY created DESC,id DESC LIMIT ? OFFSET ?',[c.get('owner'),limit,offset]);return c.json(await Promise.all(rows.map(async instance=>({...location(instance,c.env.PUBLIC_ORIGIN||new URL(c.req.url).origin),usage:await usage(c.get('db'),instance)}))));});
 platform.get('/v1/instances/:id',async c=>{const instance=await c.get('db').get<Instance>('SELECT * FROM instances WHERE id=? AND owner_hash=?',[c.req.param('id'),c.get('owner')]);if(!instance)return c.json({error:'Instance not found'},404);return c.json({...location(instance,c.env.PUBLIC_ORIGIN||new URL(c.req.url).origin),usage:await usage(c.get('db'),instance)});});
 platform.delete('/v1/instances/:id',async c=>{
   const instance=await c.get('db').get<Instance>('SELECT * FROM instances WHERE id=? AND owner_hash=?',[c.req.param('id'),c.get('owner')]);if(!instance)return c.json({error:'Instance not found'},404);
