@@ -1,16 +1,17 @@
 // Alternative/comparison pages and problem-led posts. Competitor facts come only from their public pages (source + checked date).
-const CHECKED='2026-10-20';
+// Each source carries its own checked date; change only the one you re-checked.
+const CHECKED_ON:Record<string,string>={'https://canny.io/pricing':'2026-10-20','https://fider.io/pricing':'2026-10-20','https://upvoty.com/pricing':'2026-10-20','https://featurebase.app/pricing':'2026-10-20','https://frill.co/pricing':'2026-10-20'};
 type Entry={path:string;title:string;description:string;names:string[];date?:string;body:string};
 const src=(href:string,label:string)=>`<a href="${href}" rel="nofollow noopener">${label}</a>`;
 const cta=`<p><a class="button" href="/vote">Try the live voting board<span aria-hidden="true"> ↗</span></a> <a class="button secondary" href="/waitlist?utm_source=content">Join the hosted waitlist<span aria-hidden="true"> ↗</span></a></p>`;
 const head=(eyebrow:string,h1:string,lead:string)=>`<section class="page-head compact"><p class="eyebrow">${eyebrow}</p><h1>${h1}</h1><p class="lead">${lead}</p></section>`;
-const checked=(url:string)=>`<p class="small">Source: ${src(url,url.replace('https://',''))}, checked ${CHECKED}. Prices change; check the source before you decide.</p>`;
+const checked=(url:string)=>`<p class="small">Source: ${src(url,url.replace('https://',''))}, checked ${CHECKED_ON[url]}. Prices change; check the source before you decide.</p>`;
 
 export const entries:Entry[]=[
 {path:'/alternatives/canny',title:'A free alternative to Canny',description:'Dupes Feedback is a free, self-hostable alternative to Canny: boards, votes, roadmap, changelog, REST, MCP and import from Canny.',names:['Canny'],
 body:head('ALTERNATIVE TO CANNY','A free alternative<br><em>to Canny.</em>','Feedback boards, votes, roadmap and changelog you can run yourself, without paying by the tracked user.')+`<section class="prose">
 <h2>The short version</h2>
-<p>Canny is a hosted feedback tool. Dupes Feedback does the same job and is free to self-host (AGPL-3.0). If you'd rather not run a server, a hosted version is coming; there's a waitlist and no price yet.</p>
+<p>Canny is a hosted feedback tool. Dupes Feedback covers the same core job (boards, votes, roadmap and changelog) and is free to self-host (AGPL-3.0). If you'd rather not run a server, a hosted version is coming; there's a waitlist and no price yet.</p>
 <h2>Side by side</h2>
 <table class="compare"><thead><tr><th></th><th>Canny</th><th>Dupes Feedback</th></tr></thead><tbody>
 <tr><th>Free option</th><td>Free plan, 25 tracked users</td><td>Free to self-host, no tracked-user limit</td></tr>
