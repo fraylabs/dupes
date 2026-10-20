@@ -38,6 +38,16 @@ ${checked('https://fider.io/pricing')}
 <h2>Where Fider may fit better</h2>
 <p>Fider has been around longer and has a larger community. If you only need a simple board and it already does what you need, there's no reason to switch.</p>
 ${cta}</section>`},
+{path:'/alternatives/featurebase',title:'Dupes Feedback and Featurebase compared',description:'Featurebase bundles feedback with a helpdesk and charges per seat. Dupes Feedback is a free, self-hostable feedback board.',names:['Featurebase'],
+body:head('FEATUREBASE ALTERNATIVE','Looking at Featurebase?<br><em>Here is how we compare.</em>','Featurebase is a helpdesk with feedback included. Dupes Feedback only does the feedback part, and does it on your server.')+`<section class="prose">
+<h2>What Featurebase offers</h2>
+<p>Featurebase's pricing page offers one subscription covering helpdesk and feedback. It lists a Free plan with 1 seat, then Growth at $29, Professional at $59 and Enterprise at $99 per seat per month billed yearly, plus $0.49 per AI resolution. Feedback is listed as included in every plan, and API, MCP and webhooks are listed from Growth.</p>
+${checked('https://featurebase.app/pricing')}
+<h2>Where Dupes Feedback differs</h2>
+<ul><li>Feedback only: boards, votes, comments, roadmap and changelog, with no helpdesk to pay for or ignore.</li><li>Free to self-host (AGPL-3.0), with no per-seat pricing.</li><li>REST and MCP in every install, and import from Canny.</li></ul>
+<h2>Where Featurebase may fit better</h2>
+<p>If you also want live chat, a shared inbox and an AI support agent in the same tool, Featurebase covers that and Dupes doesn't. Dupes' hosted plan isn't open yet and has no price.</p>
+${cta}</section>`},
 {path:'/alternatives/upvoty',title:'Dupes Feedback and Upvoty compared',description:'Upvoty and Dupes Feedback compared: flat monthly plans versus a free, self-hostable board with REST and MCP built in.',names:['Upvoty'],
 body:head('UPVOTY ALTERNATIVE','Looking at Upvoty?<br><em>Here is how we compare.</em>','Upvoty prices by plan, not by tracked user. That makes it one of the fairer hosted options. Here is where Dupes differs.')+`<section class="prose">
 <h2>What Upvoty offers</h2>
