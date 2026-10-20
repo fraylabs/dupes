@@ -71,6 +71,17 @@ body:head('PRICING EXPLAINED','What does a feedback board cost?<br><em>Four mode
 <h2>Which to pick</h2>
 <ul><li>Under 25 people giving feedback: a free plan is enough.</li><li>Large, active audience: avoid per-user pricing, or host it yourself.</li><li>No appetite for servers: a flat hosted plan.</li><li>Want data ownership or agent access: self-host.</li></ul>
 ${cta}</section>`},
+{path:'/blog/self-hosting-a-feedback-board',title:'Self-hosting a feedback board: what you actually take on',description:'Self-hosting a feedback board saves money and keeps your data. It also makes backups, updates and uptime your job. A plain checklist.',names:[],date:'2026-10-20',
+body:head('SELF-HOSTING','Self-hosting a feedback board:<br><em>what you actually take on.</em>','Free software is not free of work. Here is the honest list.')+`<section class="prose">
+<p>A feedback board is a small app: a web server, a database, and some email. That makes it a good first thing to self-host. It still isn't nothing.</p>
+<h2>What you gain</h2>
+<ul><li><strong>Your data stays with you.</strong> Votes, comments and customer emails live on a server you control.</li><li><strong>No pricing that follows your audience.</strong> Your cost is the server.</li><li><strong>Freedom to leave.</strong> You hold the database, so there's no export to request.</li></ul>
+<h2>What you take on</h2>
+<ul><li><strong>Backups.</strong> Copy the data volume somewhere else on a schedule, and try restoring it once.</li><li><strong>Updates.</strong> Apply new releases, including security fixes.</li><li><strong>Uptime.</strong> If the server is down, so is the board.</li><li><strong>Email.</strong> Notifications need a mail provider you configure.</li><li><strong>Privacy duties.</strong> You are the one holding your customers' emails, so your own privacy notice should say so.</li></ul>
+<h2>When it makes sense</h2>
+<p>When you already run a server, care where the data lives, or want a board your own agents can read through REST or MCP. If you'd rather not, that's what a hosted plan is for; ours isn't open yet, and you can <a href="/waitlist?utm_source=content">join the waitlist</a>.</p>
+<p>Dupes Feedback is built as one process and one data volume, to keep this list short. The <a href="/docs#self-host">setup guide</a> has the details.</p>
+${cta}</section>`},
 {path:'/blog/what-is-a-tracked-user',title:'What is a tracked user, and why does feedback software charge for them?',description:'Many feedback tools price by tracked user: anyone who posts, votes or comments. Why that is awkward, what it costs, and the alternatives.',names:['Canny'],date:'2026-10-20',
 body:head('PRICING EXPLAINED','What is a tracked user, and why does your feedback board<br><em>charge for them?</em>','Pricing that grows with your audience is a strange fit for a tool whose job is to hear from your audience.')+`<section class="prose">
 <p>Canny defines a tracked user as someone who has given feedback: creating a post, or voting or commenting on one, whether they did it themselves, an admin did it on their behalf, or its AI did. Its free plan includes 25 tracked users; Pro starts at $79/month billed yearly for 100+ tracked users; plans above 5,000 are Business, priced on request.</p>
