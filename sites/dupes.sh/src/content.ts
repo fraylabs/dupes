@@ -38,6 +38,16 @@ ${checked('https://fider.io/pricing')}
 <h2>Where Fider may fit better</h2>
 <p>Fider has been around longer and has a larger community. If you only need a simple board and it already does what you need, there's no reason to switch.</p>
 ${cta}</section>`},
+{path:'/alternatives/frill',title:'Dupes Feedback and Frill compared',description:'Frill and Dupes Feedback compared: Frill prices by plan with unlimited tracked users; Dupes Feedback is a free, self-hostable board with REST and MCP built in.',names:['Frill'],
+body:head('FRILL ALTERNATIVE','Looking at Frill?<br><em>Here is how we compare.</em>','Frill prices by plan, not by tracked user. Here is where a free, self-hosted board differs.')+`<section class="prose">
+<h2>What Frill offers</h2>
+<p>Frill's pricing page lists four plans with a 14-day free trial: Startup at $25/month (50 ideas), Business at $49/month, Growth at $149/month and Enterprise at $349/month. All list unlimited tracked users and unlimited teammates. Frill lists a Canny import and a developer API on its feature table.</p>
+${checked('https://frill.co/pricing')}
+<h2>Where Dupes Feedback differs</h2>
+<ul><li>Free to self-host (AGPL-3.0), with no cap on ideas and no plan to outgrow.</li><li>Your data stays on your own server.</li><li>Boards, votes, roadmap, changelog, REST and MCP in every install.</li><li>Import from Canny, using your own API key.</li></ul>
+<h2>Where Frill may fit better</h2>
+<p>Frill is hosted today, with surveys and an embeddable widget. Dupes' hosted plan isn't open yet and has no price. If you want a hosted board now, Frill is a reasonable choice.</p>
+${cta}</section>`},
 {path:'/alternatives/featurebase',title:'Dupes Feedback and Featurebase compared',description:'Featurebase bundles feedback with a helpdesk and charges per seat. Dupes Feedback is a free, self-hostable feedback board.',names:['Featurebase'],
 body:head('FEATUREBASE ALTERNATIVE','Looking at Featurebase?<br><em>Here is how we compare.</em>','Featurebase is a helpdesk with feedback included. Dupes Feedback only does the feedback part, and does it on your server.')+`<section class="prose">
 <h2>What Featurebase offers</h2>
