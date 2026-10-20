@@ -5,6 +5,7 @@ import platform,{sweepForms} from '../../../packages/platform/src/worker.ts';
 import { d1Storage } from '../../../dupes/feedback/src/d1-storage.ts';
 import { hash,id,now } from '../../../dupes/feedback/src/auth.ts';
 import { page,voteNotice } from './pages.ts';
+import { sitemapPaths } from './content.ts';
 import { platformOwner } from '../../../packages/platform/src/workspace-auth.ts';
 import { requestSource,sourceLabel,countablePage,recordPage,sourceStats } from './source-counts.ts';
 type Env={DB:Parameters<typeof d1Storage>[0];ASSETS:{fetch(request:Request):Promise<Response>};PLATFORM_API_KEYS:string;PUBLIC_ORIGIN?:string;SSO_SECRET?:string};
@@ -29,7 +30,8 @@ app.delete('/api/waitlist',async c=>{
   await d1Storage(c.env.DB).run('DELETE FROM site_waitlist WHERE removal_hash=?',[await hash(input.token)]);return c.json({ok:true});
 });
 app.all('/api/waitlist',c=>c.json({error:'Method not allowed'},405));
-app.get('/robots.txt',c=>c.text('User-agent: *\nDisallow: /v1/\nDisallow: /api/\n'));
+app.get('/robots.txt',c=>c.text('User-agent: *\nDisallow: /v1/\nDisallow: /api/\nSitemap: '+(c.env.PUBLIC_ORIGIN||new URL(c.req.url).origin)+'/sitemap.xml\n'));
+app.get('/sitemap.xml',c=>{const o=c.env.PUBLIC_ORIGIN||new URL(c.req.url).origin;return c.body('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'+sitemapPaths.map(p=>'<url><loc>'+o+p+'</loc></url>').join('')+'</urlset>',200,{'Content-Type':'application/xml'});});
 app.get('/health',async c=>{await d1Storage(c.env.DB).get('SELECT count(*) FROM site_waitlist');return c.json({ok:true,product:'dupes-site'});});
 app.get('/v1/stats',async c=>{
   c.header('Cache-Control','no-store');

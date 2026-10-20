@@ -1,0 +1,74 @@
+// Alternative/comparison pages and problem-led posts. Competitor facts come only from their public pages (source + checked date).
+const CHECKED='2026-10-20';
+type Entry={path:string;title:string;description:string;names:string[];date?:string;body:string};
+const src=(href:string,label:string)=>`<a href="${href}" rel="nofollow noopener">${label}</a>`;
+const cta=`<p><a class="button" href="/vote">Try the live voting board<span aria-hidden="true"> ↗</span></a> <a class="button secondary" href="/waitlist?utm_source=content">Join the hosted waitlist<span aria-hidden="true"> ↗</span></a></p>`;
+const head=(eyebrow:string,h1:string,lead:string)=>`<section class="page-head compact"><p class="eyebrow">${eyebrow}</p><h1>${h1}</h1><p class="lead">${lead}</p></section>`;
+const checked=(url:string)=>`<p class="small">Source: ${src(url,url.replace('https://',''))}, checked ${CHECKED}. Prices change; check the source before you decide.</p>`;
+
+export const entries:Entry[]=[
+{path:'/alternatives/canny',title:'A free alternative to Canny',description:'Dupes Feedback is a free, self-hostable alternative to Canny: boards, votes, roadmap, changelog, REST, MCP and import from Canny.',names:['Canny'],
+body:head('ALTERNATIVE TO CANNY','A free alternative<br><em>to Canny.</em>','Feedback boards, votes, roadmap and changelog you can run yourself, without paying by the tracked user.')+`<section class="prose">
+<h2>The short version</h2>
+<p>Canny is a hosted feedback tool. Dupes Feedback does the same job and is free to self-host (AGPL-3.0). If you'd rather not run a server, a hosted version is coming; there's a waitlist and no price yet.</p>
+<h2>Side by side</h2>
+<table class="compare"><thead><tr><th></th><th>Canny</th><th>Dupes Feedback</th></tr></thead><tbody>
+<tr><th>Free option</th><td>Free plan, 25 tracked users</td><td>Free to self-host, no tracked-user limit</td></tr>
+<tr><th>Paid price</th><td>Pro from $79/month billed yearly (100+ tracked users); Business is custom</td><td>Hosted plan not open yet; no price announced</td></tr>
+<tr><th>How price grows</th><td>With tracked users, meaning anyone who posts, votes or comments</td><td>Self-hosted: your server cost only</td></tr>
+<tr><th>Boards, voting, comments</th><td>Yes</td><td>Yes</td></tr>
+<tr><th>Roadmap and changelog</th><td>Yes</td><td>Yes</td></tr>
+<tr><th>API / MCP for coding agents</th><td>API, webhooks and MCP connectors listed on its pricing page</td><td>REST and MCP built in</td></tr>
+<tr><th>Import from Canny</th><td>n/a</td><td>Yes, with your own Canny API key</td></tr>
+<tr><th>Your data lives</th><td>On Canny's servers</td><td>On your server (self-hosted)</td></tr>
+</tbody></table>
+${checked('https://canny.io/pricing')}
+<h2>Who should stay on Canny</h2>
+<p>If you need Canny's CRM and support-desk integrations, SSO or SOC 2 paperwork, or you don't want to run anything yourself, Canny is built for that. Dupes Feedback is the better fit when you want ownership of the data, no per-user pricing, or a board your coding agent can read.</p>
+<h2>Moving over</h2>
+<p>The importer reads posts, votes and comments with your own Canny API key, runs on your machine or server, and never sends your data to us. See <a href="/docs#import">Import from Canny</a>.</p>
+${cta}</section>`},
+{path:'/alternatives/fider',title:'Dupes Feedback and Fider compared',description:'Fider and Dupes Feedback are both free, self-hostable feedback boards. Where they differ: hosted plans, API and MCP, and Canny import.',names:['Fider'],
+body:head('FIDER ALTERNATIVE','Looking at Fider?<br><em>Here is how we compare.</em>','Both are free feedback boards you can host yourself. This is where we differ, and where Fider is the better pick.')+`<section class="prose">
+<h2>What Fider does well</h2>
+<p>Fider is an established open-source feedback board. Its hosted free plan allows unlimited customers, voting and discussion with a fair-use limit of 250 feedback items, and it lists a Pro plan for more advanced features such as SEO indexing.</p>
+${checked('https://fider.io/pricing')}
+<h2>Where Dupes Feedback differs</h2>
+<ul><li>Built-in roadmap and changelog alongside boards and voting.</li><li>REST API and an MCP endpoint, so a coding agent can read requests and close the loop when work ships.</li><li>An importer for Canny, for teams moving off a paid tool.</li><li>A hosted platform you can provision with one API call (hosted access isn't open yet; join the waitlist).</li></ul>
+<h2>Where Fider may fit better</h2>
+<p>Fider has been around longer and has a larger community. If you only need a simple board and it already does what you need, there's no reason to switch.</p>
+${cta}</section>`},
+{path:'/blog/what-is-a-tracked-user',title:'What is a tracked user, and why does feedback software charge for them?',description:'Many feedback tools price by tracked user: anyone who posts, votes or comments. Why that is awkward, what it costs, and the alternatives.',names:['Canny'],date:'2026-10-20',
+body:head('PRICING EXPLAINED','What is a tracked user, and why does your feedback board<br><em>charge for them?</em>','Pricing that grows with your audience is a strange fit for a tool whose job is to hear from your audience.')+`<section class="prose">
+<p>Canny defines a tracked user as someone who has given feedback: creating a post, or voting or commenting on one, whether they did it themselves, an admin did it on their behalf, or its AI did. Its free plan includes 25 tracked users; Pro starts at $79/month billed yearly for 100+ tracked users; plans above 5,000 are Business, priced on request.</p>
+${checked('https://canny.io/pricing')}
+<h2>Why it's awkward</h2>
+<p>A feedback board works best when more customers vote. Every extra voter moves you toward the next price tier. A popular launch, a viral request, or an invite to your whole user base can change next month's bill, which nudges you to ask for less feedback.</p>
+<h2>Ways out</h2>
+<ol><li><strong>Stay small.</strong> If you have fewer than 25 people giving feedback, a free plan is fine.</li><li><strong>Pick a flat-price tool.</strong> Some tools charge per admin seat or a flat monthly fee instead.</li><li><strong>Host it yourself.</strong> An open-source board costs the price of a small server and your time. Dupes Feedback is one process and one data volume, with <a href="/alternatives/canny">import from Canny</a> if you already have a board.</li></ol>
+<h2>A fair check before you leave</h2>
+<p>Self-hosting means backups, updates and uptime are yours. If that isn't what you want, a hosted plan with predictable pricing is the better answer; we're building one, and you can <a href="/waitlist?utm_source=content">join the waitlist</a>.</p>
+${cta}</section>`},
+{path:'/blog/can-your-coding-agent-read-your-feedback-board',title:'Can your coding agent read your feedback board?',description:'Feedback boards were built for people. Here is what changes when your coding agent can read requests, and close them when work ships.',names:['Canny'],date:'2026-10-20',
+body:head('AGENTS AND FEEDBACK','Can your coding agent<br><em>read your feedback board?</em>','Most feedback tools were designed for product managers clicking through a dashboard. That is changing.')+`<section class="prose">
+<p>If an agent writes your code, the loop that matters is: a customer asks, you decide, the agent builds it, the customer hears it shipped. Each step through a dashboard is a place the loop breaks.</p>
+<h2>What an agent needs</h2>
+<ul><li><strong>Read access</strong> to requests, vote counts and comments, through an API or an MCP server.</li><li><strong>Write access</strong> to change a request's status and post a changelog entry.</li><li><strong>A scoped key,</strong> so it can only touch the board.</li></ul>
+<h2>What's on offer</h2>
+<p>Canny's pricing page lists MCP connectors (OpenAI, Claude, ClickUp, Cursor) and an API with webhooks.</p>
+${checked('https://canny.io/pricing')}
+<p>Dupes Feedback ships REST and MCP in the box, on a free self-hosted install or a hosted instance provisioned with one API call. The same board runs <a href="/vote">our own vote for the next dupe</a>, so you can see it working.</p>
+<h2>One caution</h2>
+<p>Let the agent propose status changes rather than publish customer-facing posts on its own. A human reading the changelog before it goes out is cheap insurance.</p>
+${cta}</section>`}
+];
+export function contentPage(path:string):Entry|'index'|undefined {
+  if(path==='/alternatives'||path==='/blog')return 'index';
+  return entries.find(e=>e.path===path);
+}
+export function indexPage(path:string):Entry {
+  const alt=path==='/alternatives',list=entries.filter(e=>e.path.startsWith(alt?'/alternatives/':'/blog/'));
+  return {path,title:alt?'Alternatives to paid tools':'Notes on feedback and pricing',description:alt?'Honest comparisons between Dupes and the paid tools it replaces.':'Problem-led notes on feedback boards, pricing and agents.',names:[...new Set(list.flatMap(e=>e.names))],
+    body:head(alt?'ALTERNATIVES':'THE BLOG',alt?'Honest<br><em>comparisons.</em>':'Notes on<br><em>feedback.</em>',alt?'Every figure has a source and a checked date.':'Problems first. Product second.')+`<section class="prose">${list.map(e=>`<h2><a href="${e.path}">${e.title}</a></h2><p>${e.description}</p>`).join('')}</section>`};
+}
+export const sitemapPaths=['/','/catalogue','/docs','/vote','/waitlist','/alternatives','/blog',...entries.map(e=>e.path)];
