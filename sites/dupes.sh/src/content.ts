@@ -97,6 +97,30 @@ body:head('SELF-HOSTING','Self-hosting a feedback board:<br><em>what you actuall
 <p>When you already run a server, care where the data lives, or want a board your own agents can read through REST or MCP. If you'd rather not, that's what a hosted plan is for; ours isn't open yet, and you can <a href="/waitlist?utm_source=content">join the waitlist</a>.</p>
 <p>Dupes Feedback is built as one process and one data volume, to keep this list short. The <a href="/docs#self-host">setup guide</a> has the details.</p>
 ${cta}</section>`},
+{path:'/blog/feedback-board-cost-at-1000-and-10000-users',title:'What a feedback board costs at 1,000 and 10,000 tracked users',description:'What the public pricing pages say a feedback board costs when 1,000 or 10,000 people vote, and where the price is only available by asking.',names:['Canny','Upvoty','Frill','Fider','Featurebase'],date:'2026-10-20',
+body:head('PRICING EXPLAINED','What a feedback board costs at<br><em>1,000 and 10,000 tracked users.</em>','We read the public pricing pages. Some give a number at that size. Some only say "talk to us".')+`<section class="prose">
+<p>A tracked user is anyone who posts, votes or comments. Say 1,000 people vote on your board this year, or 10,000. Here is what each public pricing page tells you.</p>
+<table class="compare"><thead><tr><th>Tool</th><th>At 1,000 tracked users</th><th>At 10,000 tracked users</th></tr></thead><tbody>
+<tr><td>Canny</td><td>Pro, listed from $79/month billed yearly for 100+ tracked users; the page has a calculator for the exact figure</td><td>Above the 5,000+ Business tier, which shows "Let's talk" and no public price</td></tr>
+<tr><td>Upvoty</td><td>$15, $25 or $49/month, depending on features</td><td>The same; plans list unlimited tracked users</td></tr>
+<tr><td>Frill</td><td>$25 to $349/month, depending on plan</td><td>The same; plans list unlimited tracked users</td></tr>
+<tr><td>Fider</td><td>Free plan, capped at 250 feedback items</td><td>The same cap; a Pro plan is listed for more features</td></tr>
+<tr><td>Featurebase</td><td>Priced per seat ($29 to $99/month billed yearly), not per voter</td><td>The same</td></tr>
+<tr><td>Dupes Feedback, self-hosted</td><td>Your server cost</td><td>Your server cost</td></tr>
+</tbody></table>
+<p class="small">Sources: ${src('https://canny.io/pricing','canny.io/pricing')}, ${src('https://upvoty.com/pricing','upvoty.com/pricing')}, ${src('https://frill.co/pricing','frill.co/pricing')}, ${src('https://fider.io/pricing','fider.io/pricing')}, ${src('https://featurebase.app/pricing','featurebase.app/pricing')}, all checked 2026-10-20. Prices change; check the source.</p>
+<h2>What to take from it</h2>
+<ul><li>Per-voter pricing is the one that moves with your audience. Flat plans and per-seat plans don't.</li><li>"Talk to us" means you can't budget from the pricing page. Ask before you commit.</li><li>Plans differ in features as much as price. Check which ones you need, such as changelog, API or SSO.</li></ul>
+<p>We make a free, self-hostable feedback board, Dupes Feedback. Its cost is your server. Try the <a href="/vote">live voting board</a>.</p></section>`},
+{path:'/blog/per-user-pricing-punishes-your-best-customers',title:'Why per-user pricing punishes your best customers',description:'Feedback tools that price by tracked user charge more when more customers speak up. Why that is backwards, and what to look for instead.',names:['Canny'],date:'2026-10-20',
+body:head('OPINION','Why per-user pricing punishes<br><em>your best customers.</em>','The customers who vote, comment and ask for things are the ones you most want to hear from.')+`<section class="prose">
+<p>Think about who ends up on a feedback board. Not the customers who quietly left. The engaged ones: they post an idea, vote on three more, and come back to see what shipped.</p>
+<p>When a tool charges by tracked user, each of them is a line on your bill. Canny defines a tracked user as someone who has given feedback, by posting, voting or commenting (${src('https://canny.io/pricing','canny.io/pricing')}, checked 2026-10-20). Its free plan covers 25.</p>
+<h2>The incentive is backwards</h2>
+<p>You want more customers to speak up. The price wants fewer. Teams respond in quiet ways: they stop inviting the whole base, hide the board behind a login, or merge feedback into a spreadsheet when the next tier comes into view.</p>
+<h2>What to look for instead</h2>
+<ul><li><strong>Price by something you control,</strong> like seats or features, not by how many customers talk.</li><li><strong>A way out.</strong> You should be able to export your data, or run the tool yourself.</li><li><strong>No surprise at the next tier.</strong> If a price is "contact us", ask the question before you invite your users.</li></ul>
+<p>That's why we're building Dupes Feedback as a free, self-hostable board: nothing on it grows with the number of people who vote. Come and vote on the <a href="/vote">next dupe</a>.</p></section>`},
 {path:'/blog/what-is-a-tracked-user',title:'What is a tracked user, and why does feedback software charge for them?',description:'Many feedback tools price by tracked user: anyone who posts, votes or comments. Why that is awkward, what it costs, and the alternatives.',names:['Canny'],date:'2026-10-20',
 body:head('PRICING EXPLAINED','What is a tracked user, and why does your feedback board<br><em>charge for them?</em>','Pricing that grows with your audience is a strange fit for a tool whose job is to hear from your audience.')+`<section class="prose">
 <p>Canny defines a tracked user as someone who has given feedback: creating a post, or voting or commenting on one, whether they did it themselves, an admin did it on their behalf, or its AI did. Its free plan includes 25 tracked users; Pro starts at $79/month billed yearly for 100+ tracked users; plans above 5,000 are Business, priced on request.</p>
@@ -128,6 +152,11 @@ export function contentPage(path:string):Entry|'index'|undefined {
 export function indexPage(path:string):Entry {
   const alt=path==='/alternatives',list=entries.filter(e=>e.path.startsWith(alt?'/alternatives/':'/blog/'));
   return {path,title:alt?'Alternatives to paid tools':'Notes on feedback and pricing',description:alt?'Honest comparisons between Dupes and the paid tools it replaces.':'Problem-led notes on feedback boards, pricing and agents.',names:[...new Set(list.flatMap(e=>e.names))],
-    body:head(alt?'ALTERNATIVES':'THE BLOG',alt?'Honest<br><em>comparisons.</em>':'Notes on<br><em>feedback.</em>',alt?'Every figure has a source and a checked date.':'Problems first. Product second.')+`<section class="prose">${list.map(e=>`<h2><a href="${e.path}">${e.title}</a></h2><p>${e.description}</p>`).join('')}</section>`};
+    body:head(alt?'ALTERNATIVES':'THE BLOG',alt?'Honest<br><em>comparisons.</em>':'Notes on<br><em>feedback.</em>',alt?'Every figure has a source and a checked date.':'Problems first. Product second.')+`<section class="prose">${alt?'':'<p class="small"><a href="/blog/rss.xml">RSS feed</a></p>'}${list.map(e=>`<h2><a href="${e.path}">${e.title}</a></h2><p>${e.description}</p>`).join('')}</section>`};
+}
+export function rssFeed(origin:string):string {
+  const esc=(v:string)=>v.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const posts=entries.filter(e=>e.date&&e.path.startsWith('/blog/')).sort((a,b)=>b.date!.localeCompare(a.date!));
+  return '<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>Dupes blog</title><link>'+origin+'/blog</link><description>Problem-led notes on feedback boards, pricing and agents.</description>'+posts.map(e=>'<item><title>'+esc(e.title)+'</title><link>'+origin+e.path+'</link><guid>'+origin+e.path+'</guid><pubDate>'+new Date(e.date+'T09:00:00Z').toUTCString()+'</pubDate><description>'+esc(e.description)+'</description></item>').join('')+'</channel></rss>';
 }
 export const sitemapPaths=['/','/catalogue','/docs','/vote','/waitlist','/alternatives','/blog',...entries.map(e=>e.path)];
