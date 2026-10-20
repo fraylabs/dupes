@@ -38,6 +38,29 @@ ${checked('https://fider.io/pricing')}
 <h2>Where Fider may fit better</h2>
 <p>Fider has been around longer and has a larger community. If you only need a simple board and it already does what you need, there's no reason to switch.</p>
 ${cta}</section>`},
+{path:'/alternatives/upvoty',title:'Dupes Feedback and Upvoty compared',description:'Upvoty and Dupes Feedback compared: flat monthly plans versus a free, self-hostable board with REST and MCP built in.',names:['Upvoty'],
+body:head('UPVOTY ALTERNATIVE','Looking at Upvoty?<br><em>Here is how we compare.</em>','Upvoty prices by plan, not by tracked user. That makes it one of the fairer hosted options. Here is where Dupes differs.')+`<section class="prose">
+<h2>What Upvoty offers</h2>
+<p>Upvoty lists three plans with a 14-day free trial: Power at $15/month, Super at $25/month and Hyper at $49/month (billed monthly), all with unlimited boards and unlimited tracked users. The changelog is listed from Super up; API, webhooks and an Upvoty MCP are listed on Hyper.</p>
+${checked('https://upvoty.com/pricing')}
+<h2>Where Dupes Feedback differs</h2>
+<ul><li>Free to self-host (AGPL-3.0), so your data stays on your server and there is no monthly plan to outgrow.</li><li>Roadmap, changelog, REST and MCP are in every install, not tied to a tier.</li><li>Import from Canny for teams leaving a paid tool.</li></ul>
+<h2>Where Upvoty may fit better</h2>
+<p>Upvoty is hosted today at a clear price. Dupes' hosted plan isn't open yet and has no price. If you want a hosted board now and don't mind a subscription, Upvoty is a reasonable choice.</p>
+${cta}</section>`},
+{path:'/blog/what-does-a-feedback-board-cost',title:'What does a feedback board cost? Four pricing models compared',description:'Per tracked user, flat plans, free with a cap, or self-hosted: how feedback-board pricing works and which fits you.',names:['Canny','Upvoty','Fider'],date:'2026-10-20',
+body:head('PRICING EXPLAINED','What does a feedback board cost?<br><em>Four models compared.</em>','The headline price rarely tells you what you will pay once your users start voting.')+`<section class="prose">
+<h2>1. Per tracked user</h2>
+<p>Canny's free plan covers 25 tracked users; Pro is listed from $79/month billed yearly for 100+ tracked users. The bill follows your audience.</p>${checked('https://canny.io/pricing')}
+<h2>2. Flat plans</h2>
+<p>Upvoty lists $15, $25 and $49 a month with unlimited tracked users; what changes between plans is features such as changelog, integrations and API.</p>${checked('https://upvoty.com/pricing')}
+<h2>3. Free with a cap</h2>
+<p>Fider's hosted free plan allows unlimited customers, voting and members, with a fair-use limit of 250 feedback items.</p>${checked('https://fider.io/pricing')}
+<h2>4. Self-hosted</h2>
+<p>Dupes Feedback is free to run on your own server: you pay for the server, and for the time backups and updates take. See <a href="/docs">the setup guide</a>.</p>
+<h2>Which to pick</h2>
+<ul><li>Under 25 people giving feedback: a free plan is enough.</li><li>Large, active audience: avoid per-user pricing, or host it yourself.</li><li>No appetite for servers: a flat hosted plan.</li><li>Want data ownership or agent access: self-host.</li></ul>
+${cta}</section>`},
 {path:'/blog/what-is-a-tracked-user',title:'What is a tracked user, and why does feedback software charge for them?',description:'Many feedback tools price by tracked user: anyone who posts, votes or comments. Why that is awkward, what it costs, and the alternatives.',names:['Canny'],date:'2026-10-20',
 body:head('PRICING EXPLAINED','What is a tracked user, and why does your feedback board<br><em>charge for them?</em>','Pricing that grows with your audience is a strange fit for a tool whose job is to hear from your audience.')+`<section class="prose">
 <p>Canny defines a tracked user as someone who has given feedback: creating a post, or voting or commenting on one, whether they did it themselves, an admin did it on their behalf, or its AI did. Its free plan includes 25 tracked users; Pro starts at $79/month billed yearly for 100+ tracked users; plans above 5,000 are Business, priced on request.</p>
