@@ -55,3 +55,7 @@ Canny is a trademark of its owner. Dupes isn't affiliated with or endorsed by Ca
 ## Workspace keys and shared MCP
 
 Apply additive site migration `0004_workspace_keys.sql` before deploying workspace-capable source. Existing env bootstrap keys preserve ownership. Issued keys can live as SHA-256 hashes in `workspace_keys`, resolving to an opaque owner ID, so future signup does not require adding env secrets. No issuance endpoint is exposed yet. Keep all key values private. `/v1/workspace`, `/v1/mcp` and `/v1/search` use platform Bearer auth and include private owned app content. Use site migrations only, not the parallel standalone-platform migration set. See `packages/platform/WORKSPACE.md`.
+
+## Public demo and signup (current public deployment)
+
+The former preview gate is retired. Follow `PUBLIC_ENTRY.md` for the current public source: site migration `0006_public_entry.sql`, private `ABUSE_SECRET`, existing DB/assets/routes/minute cron, one free instance per workspace, and masked once-only key issuance. Never reintroduce the old preview gate or apply the standalone platform migration set to this database. `/v1/stats` is now operator-bootstrap-only because public workspace keys must not access global metrics.

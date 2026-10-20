@@ -15,12 +15,14 @@ GET /v1/stats?from=2026-10-20&to=2026-10-26
 Authorization: Bearer <platform-key>
 ```
 
-This site-only endpoint accepts the existing bootstrap or D1-issued platform keys. It returns global aggregate website metrics, never email addresses, per-visitor records or raw credentials. Instance API keys cannot authenticate it.
+This site-only endpoint accepts only existing operator bootstrap keys from PLATFORM_API_KEYS. It returns global aggregate website metrics, never email addresses, per-visitor records or raw credentials. Publicly issued workspace keys and instance API keys cannot authenticate it.
 
-Response: `{from,to,timezone:'UTC',metric,visits:[{day,path,source,views}],signups:[{day,source,signups}],nextOffset}`. Default range is the last 30 UTC days. The inclusive range may span up to 366 days. `source` optionally filters one category; `limit` defaults to 200, maximum 1000; `offset` paginates both arrays. Continue while `nextOffset` is non-null and concatenate each array separately. Signups are **current waitlist entries by original signup day**, not an immutable all-time conversion counter.
+Response: `{from,to,timezone:'UTC',metric,visits:[{day,path,source,views}],signups:[{day,source,signups}],hostedSignups:[{day,source,signups}],nextOffset}`. Default range is the last 30 UTC days. The inclusive range may span up to 366 days. `source` optionally filters one category; `limit` defaults to 200, maximum 1000; `offset` paginates all three arrays. Continue while `nextOffset` is non-null and concatenate each array separately. Signups are **current waitlist entries by original signup day**, not an immutable all-time conversion counter.
 
 Page counting fails open if the aggregate write is unavailable: the page still serves, and a generic error without visitor data is logged. Check D1 health if counts appear incomplete. Client-supplied UTM/source labels and referrers can be spoofed; these are directional tactic metrics, not billing or security evidence.
 
 ## Verify on the running site
 
 Use a synthetic human-like UA to request `/?utm_source=test`, then read authenticated stats filtered to `source=test` and confirm today's `/` count increases. A bot-UA GET, HEAD and asset request with that label must not increase it. Verify a synthetic waitlist signup carries the landing category across internal navigation, repeat submission does not duplicate it, and removal clears the signup. Delete only the tagged test aggregate rows through Infrastructure, then verify no `source=test` rows remain. Do not reset real traffic or store credentials in evidence. No proof VM or fresh install is required.
+
+Migration `0006_public_entry.sql` adds hosted signup metadata. `hostedSignups` groups current workspace signup rows independently of waitlist `signups`. Email addresses and keys never appear in these aggregate reports.

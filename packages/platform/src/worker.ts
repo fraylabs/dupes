@@ -5,13 +5,15 @@ import { d1Storage } from '../../../dupes/feedback/src/d1-storage.ts';
 import { createApp } from '../../../dupes/feedback/src/app.ts';
 import { hash,id,now } from '../../../dupes/feedback/src/auth.ts';
 import type { Storage,Statement } from '../../../dupes/feedback/src/storage.ts';
-import { tenantStorage,tenantTables,tenantStatement } from './tenant-storage.ts';
+import { tenantStorage,tenantTables } from './tenant-storage.ts';
 import { createFormsApp } from '../../../dupes/forms/src/app.ts';
 import { deliverPending,publicFetch,type Delivery } from '../../../dupes/forms/src/webhooks.ts';
 import { ownedInstances,pagination,crossAppSearch,workspaceRPC } from './workspace.ts';
 import { platformOwner } from './workspace-auth.ts';
+import { DEMO_ID,resetDemo,publicMaintenance } from './demo.ts';
+import { connectionAddress,rateLimit } from './public-limits.ts';
 type WebhookBinding={WEBHOOK_RECEIVER?:{fetch(request:Request):Promise<Response>};WEBHOOK_RECEIVER_ORIGIN?:string};
-type Env=WebhookBinding&{DB:Parameters<typeof d1Storage>[0];PLATFORM_API_KEYS:string;PUBLIC_ORIGIN?:string;SSO_SECRET?:string};
+type Env=WebhookBinding&{DB:Parameters<typeof d1Storage>[0];PLATFORM_API_KEYS:string;PUBLIC_ORIGIN?:string;SSO_SECRET?:string;ABUSE_SECRET?:string};
 function webhookDelivery(env:WebhookBinding):Delivery|undefined {
   if(!env.WEBHOOK_RECEIVER||!env.WEBHOOK_RECEIVER_ORIGIN)return undefined;
   return async(url,body,headers)=>{
@@ -60,16 +62,18 @@ platform.post('/v1/instances',async c=>{
   const input=z.object({app:z.enum(['feedback','forms']),name:z.string().trim().min(1).max(100)}).parse(await c.req.json());
   const instanceId=id(),adminApiKey=id()+id(),created=now();
   const instance:Instance={id:instanceId,owner_hash:c.get('owner'),app:input.app,name:input.name,created,requests:0};
-  // Provision everything in one transaction. Only the returned key authenticates
-  // this instance; API keys and browser sessions never cross tenant boundaries.
-  const ops:Statement[]=[{text:'INSERT INTO instances(id,owner_hash,app,name,created) VALUES(?,?,?,?,?)',values:[instanceId,instance.owner_hash,input.app,input.name,created]}];
-  if(input.app==='forms')ops.push({text:'INSERT INTO forms_credentials(tenant_id,id,hash,kind) VALUES(?,?,?,?)',values:[instanceId,id(),await hash(adminApiKey),'api']});
-  else for(const q of [
-    {text:'INSERT INTO credentials(id,name,hash,kind) VALUES(?,?,?,?)',values:[id(),'Provisioned admin',await hash(adminApiKey),'api']},
-    // Hosted sign-in exchanges this key; no password is configured.
-    {text:'INSERT INTO boards(id,name,description) VALUES(?,?,?)',values:['ideas','Feature requests','Share an idea or vote for something you love.']}
-  ])ops.push(tenantStatement(instanceId,q));
+  // Count and insertion share D1's atomic batch: concurrent browser/CLI calls
+  // cannot both pass the one-instance free cap. Conditional seed writes also
+  // become no-ops for the losing request, rather than creating orphan secrets.
+  const ops:Statement[]=[{text:'INSERT INTO instances(id,owner_hash,app,name,created) SELECT ?,?,?,?,? WHERE NOT EXISTS(SELECT 1 FROM instances WHERE owner_hash=?)',values:[instanceId,instance.owner_hash,input.app,input.name,created,instance.owner_hash]}];
+  const exists='EXISTS(SELECT 1 FROM instances WHERE id=? AND owner_hash=?)',guard=[instanceId,instance.owner_hash];
+  if(input.app==='forms')ops.push({text:`INSERT INTO forms_credentials(tenant_id,id,hash,kind) SELECT ?,?,?,? WHERE ${exists}`,values:[instanceId,id(),await hash(adminApiKey),'api',...guard]});
+  else ops.push(
+    {text:`INSERT INTO hosted_credentials(tenant_id,id,name,hash,kind) SELECT ?,?,?,?,? WHERE ${exists}`,values:[instanceId,id(),'Provisioned admin',await hash(adminApiKey),'api',...guard]},
+    {text:`INSERT INTO hosted_boards(tenant_id,id,name,description) SELECT ?,?,?,? WHERE ${exists}`,values:[instanceId,'ideas','Feature requests','Share an idea or vote for something you love.',...guard]}
+  );
   await c.get('db').batch(ops);
+  if(!await c.get('db').get('SELECT id FROM instances WHERE id=? AND owner_hash=?',guard))return c.json({error:'Free hosted workspaces can have one instance. Use or delete your existing instance before creating another.'},409);
   return c.json({...location(instance,c.env.PUBLIC_ORIGIN||new URL(c.req.url).origin),adminApiKey,usage:{requests:0,storageBytes:(await usage(c.get('db'),instance)).storageBytes}},201);
 });
 platform.get('/v1/instances',async c=>{const {limit,offset}=pagination.parse(c.req.query());const rows=await c.get('db').all<Instance>('SELECT * FROM instances WHERE owner_hash=? ORDER BY created DESC,id DESC LIMIT ? OFFSET ?',[c.get('owner'),limit,offset]);return c.json(await Promise.all(rows.map(async instance=>({...location(instance,c.env.PUBLIC_ORIGIN||new URL(c.req.url).origin),usage:await usage(c.get('db'),instance)}))));});
@@ -81,18 +85,34 @@ platform.delete('/v1/instances/:id',async c=>{
   await c.get('db').batch([...order.map(table=>({text:`DELETE FROM ${prefix}${table} WHERE tenant_id=?`,values:[instance.id]})),{text:'DELETE FROM instances WHERE id=? AND owner_hash=?',values:[instance.id,c.get('owner')]}]);return c.json({deleted:true,id:instance.id});
 });
 platform.get('/i/:tenant',c=>c.redirect('/i/'+c.req.param('tenant')+'/'));
+platform.use('/i/demo/*',bodyLimit({maxSize:32768}));
 platform.all('/i/:tenant/*',async c=>{
-  const db=c.get('db'),tenant=c.req.param('tenant');const instance=await db.get<Instance>('SELECT * FROM instances WHERE id=?',[tenant]);if(!instance)return c.json({error:'Instance not found'},404);
+  const db=c.get('db'),tenant=c.req.param('tenant');
+  if(tenant===DEMO_ID){
+    const address=connectionAddress(c.req.raw);if(!address)return c.json({error:'Demo protection is unavailable. Please try again later.'},503);
+    const read=['GET','HEAD','OPTIONS'].includes(c.req.method);
+    let limit;try{limit=await rateLimit(db,c.env.ABUSE_SECRET,read?'demo-read':'demo-write',address,read?300:30,read?60:3600);}catch{return c.json({error:'Demo protection is unavailable. Please try again later.'},503);}
+    if(!limit.allowed){c.header('Retry-After',String(limit.retryAfter));return c.json({error:'The demo is busy. Please try again after the rate limit resets.'},429);}
+    if(!read&&Number(c.req.header('Content-Length')||0)>32768)return c.json({error:'Demo requests must be smaller than 32 KB.'},413);
+    await resetDemo(db);
+    if(!read){const size=await db.get('SELECT (SELECT count(*) FROM hosted_posts WHERE tenant_id=?)+(SELECT count(*) FROM hosted_comments WHERE tenant_id=?)+(SELECT count(*) FROM hosted_users WHERE tenant_id=?) total',[tenant,tenant,tenant]);if(Number(size?.total)>=2000)return c.json({error:'This demo has reached its daily content limit. It resets daily at midnight UTC.'},429);}
+  }
+  const instance=await db.get<Instance>('SELECT * FROM instances WHERE id=?',[tenant]);if(!instance)return c.json({error:'Instance not found'},404);
   await db.run('UPDATE instances SET requests=requests+1 WHERE id=?',[tenant]);
-  const base='/i/'+tenant;const url=new URL(c.req.url);url.pathname=url.pathname.slice(base.length)||'/';
+  const internalBase='/i/'+tenant,base=tenant===DEMO_ID?'/demo':internalBase;const url=new URL(c.req.url);url.pathname=url.pathname.slice(internalBase.length)||'/';
   if(instance.app==='forms'){
     const forms=createFormsApp(db,{tenant,basePath:base,siteName:instance.name,publicOrigin:c.env.PUBLIC_ORIGIN||url.origin,background:p=>c.executionCtx.waitUntil(p),sendWebhook:webhookDelivery(c.env)});
     return forms.fetch(new Request(url,c.req.raw));
   }
   const scoped=tenantStorage(db,tenant);
-  const app=createApp(scoped,{siteName:instance.name,publicOrigin:c.env.PUBLIC_ORIGIN||url.origin,ssoSecret:c.env.SSO_SECRET,basePath:base,sessionCookie:'feedback_'+tenant});
+  const app=createApp(scoped,{siteName:instance.name,publicOrigin:c.env.PUBLIC_ORIGIN||url.origin,ssoSecret:tenant===DEMO_ID?undefined:c.env.SSO_SECRET,basePath:base,sessionCookie:'feedback_'+tenant,demo:tenant===DEMO_ID});
   const response=await app.fetch(new Request(url,c.req.raw));
+  if(tenant===DEMO_ID&&response.headers.get('Content-Type')?.includes('text/html')){
+    const signupUrl=new URL('/signup',c.env.PUBLIC_ORIGIN||url.origin).href;
+    const html=(await response.text()).replace('</head>','<link rel="stylesheet" href="/demo-notice.css"></head>').replace('<body>','<body><aside class="demo-notice"><strong>Interactive demo · sample data · resets daily at midnight UTC.</strong> Try a post, vote or comment without an account. Everything here is public and temporary; please leave out personal information. <a href="'+signupUrl+'">Create your own workspace →</a></aside>');
+    const headers=new Headers(response.headers);headers.delete('Content-Length');return new Response(html,{status:response.status,headers});
+  }
   return response;
 });
 export default {fetch:platform.fetch,scheduled:async(_event:unknown,env:Env)=>sweepForms(env)};
-export async function sweepForms(env:Pick<Env,'DB'>&WebhookBinding){const db=d1Storage(env.DB);const pending=await db.all('SELECT DISTINCT tenant_id FROM forms_deliveries WHERE sent=0 AND attempts<10 AND next_at<=? LIMIT 20',[Date.now()]);await Promise.all(pending.map(row=>deliverPending(db,row.tenant_id,webhookDelivery(env))));}
+export async function sweepForms(env:Pick<Env,'DB'>&WebhookBinding){const db=d1Storage(env.DB);await publicMaintenance(db);const pending=await db.all('SELECT DISTINCT tenant_id FROM forms_deliveries WHERE sent=0 AND attempts<10 AND next_at<=? LIMIT 20',[Date.now()]);await Promise.all(pending.map(row=>deliverPending(db,row.tenant_id,webhookDelivery(env))));}

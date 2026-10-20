@@ -6,11 +6,12 @@ import { d1Storage } from '../../../dupes/feedback/src/d1-storage.ts';
 import { hash,id,now } from '../../../dupes/feedback/src/auth.ts';
 import { page,voteNotice } from './pages.ts';
 import { sitemapPaths,rssFeed } from './content.ts';
-import { platformOwner } from '../../../packages/platform/src/workspace-auth.ts';
+import { bootstrapOwner } from '../../../packages/platform/src/workspace-auth.ts';
+import { signup } from './signup.ts';
 import { requestSource,sourceLabel,countablePage,recordPage,sourceStats } from './source-counts.ts';
-type Env={DB:Parameters<typeof d1Storage>[0];ASSETS:{fetch(request:Request):Promise<Response>};PLATFORM_API_KEYS:string;PUBLIC_ORIGIN?:string;SSO_SECRET?:string};
+type Env={DB:Parameters<typeof d1Storage>[0];ASSETS:{fetch(request:Request):Promise<Response>};PLATFORM_API_KEYS:string;PUBLIC_ORIGIN?:string;SSO_SECRET?:string;ABUSE_SECRET?:string};
 const app=new Hono<{Bindings:Env}>();
-app.use('*',async(c,next)=>{await next();c.header('X-Content-Type-Options','nosniff');c.header('Referrer-Policy','strict-origin-when-cross-origin');if(!c.req.path.startsWith('/i/')&&!c.req.path.startsWith('/v1/'))c.header('Content-Security-Policy',"default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; frame-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'");});
+app.use('*',async(c,next)=>{await next();c.header('X-Content-Type-Options','nosniff');c.header('Referrer-Policy','strict-origin-when-cross-origin');if(!c.req.path.startsWith('/i/')&&!c.req.path.startsWith('/v1/')&&!c.req.path.startsWith('/demo'))c.header('Content-Security-Policy',"default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; frame-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'");});
 app.use('*',async(c,next)=>{
   await next();
   if(countablePage(c.req.raw,c.res))try{await recordPage(d1Storage(c.env.DB),c.req.raw);}catch{console.error('Aggregate page count could not be saved');}
@@ -30,6 +31,14 @@ app.delete('/api/waitlist',async c=>{
   await d1Storage(c.env.DB).run('DELETE FROM site_waitlist WHERE removal_hash=?',[await hash(input.token)]);return c.json({ok:true});
 });
 app.all('/api/waitlist',c=>c.json({error:'Method not allowed'},405));
+app.use('/api/signup',bodyLimit({maxSize:4096}));
+app.post('/api/signup',async c=>{
+  c.header('Cache-Control','no-store');
+  if(c.req.header('Origin')!==(c.env.PUBLIC_ORIGIN||new URL(c.req.url).origin))return c.json({error:'Origin not allowed'},403);
+  const result=await signup(d1Storage(c.env.DB),c.req.raw,c.env.ABUSE_SECRET);
+  if(result.retryAfter)c.header('Retry-After',String(result.retryAfter));
+  return c.json(result.body,result.status);
+});
 app.get('/robots.txt',c=>c.text('User-agent: *\nDisallow: /v1/\nDisallow: /api/\nSitemap: '+(c.env.PUBLIC_ORIGIN||new URL(c.req.url).origin)+'/sitemap.xml\n'));
 app.get('/sitemap.xml',c=>{const o=c.env.PUBLIC_ORIGIN||new URL(c.req.url).origin;return c.body('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'+sitemapPaths.map(p=>'<url><loc>'+o+p+'</loc></url>').join('')+'</urlset>',200,{'Content-Type':'application/xml'});});
 app.get('/blog/rss.xml',c=>c.body(rssFeed(c.env.PUBLIC_ORIGIN||new URL(c.req.url).origin),200,{'Content-Type':'application/rss+xml; charset=utf-8'}));
@@ -39,7 +48,7 @@ app.get('/v1/stats',async c=>{
   const bearer=c.req.header('Authorization')?.match(/^Bearer (.+)$/)?.[1];
   if(!bearer)return c.json({error:'Platform API key required'},401);
   const db=d1Storage(c.env.DB);
-  if(!await platformOwner(db,c.env.PLATFORM_API_KEYS,bearer))return c.json({error:'Platform API key not recognised'},401);
+  if(!await bootstrapOwner(c.env.PLATFORM_API_KEYS,bearer))return c.json({error:'Operator platform key required'},401);
   return c.json(await sourceStats(db,c.req.query()));
 });
 async function forward(c:any) {
@@ -51,9 +60,11 @@ async function forward(c:any) {
   return response;
 }
 app.all('/i/*',forward);app.all('/v1/*',forward);
+app.all('/demo',async c=>{const url=new URL(c.req.url);url.pathname='/i/demo/';return platform.fetch(new Request(url,c.req.raw),c.env,c.executionCtx);});
+app.all('/demo/*',async c=>{const url=new URL(c.req.url);url.pathname='/i/demo'+url.pathname.slice('/demo'.length);return platform.fetch(new Request(url,c.req.raw),c.env,c.executionCtx);});
 app.get('*',async c=>{
   const html=page(c.req.path);if(html){c.header('Cache-Control','no-store');return c.html(html.replace('</head>','<meta name="dupes-source" content="'+requestSource(c.req.raw)+'"></head>'));}
-  if(c.req.path.startsWith('/images/')||c.req.path.startsWith('/reference/')||['/styles.css','/board-legal.css','/site.js'].includes(c.req.path))return c.env.ASSETS.fetch(c.req.raw);
+  if(c.req.path.startsWith('/images/')||c.req.path.startsWith('/reference/')||['/styles.css','/board-legal.css','/demo-notice.css','/site.js'].includes(c.req.path))return c.env.ASSETS.fetch(c.req.raw);
   return c.text('Page not found',404);
 });
 export default {fetch:app.fetch,scheduled:async(_event:unknown,env:Env)=>sweepForms(env)};

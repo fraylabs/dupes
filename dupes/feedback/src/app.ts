@@ -9,7 +9,7 @@ import { credential, issue, id, hash, now, passwordHash, equal, verifySSO } from
 import { rpc } from './mcp.ts';
 import { html, client, css, widget } from './ui.ts';
 
-export function createApp(db:Storage,config:{ssoSecret?:string;siteName?:string;publicOrigin?:string;basePath?:string;sessionCookie?:string}={}) {
+export function createApp(db:Storage,config:{ssoSecret?:string;siteName?:string;publicOrigin?:string;basePath?:string;sessionCookie?:string;demo?:boolean}={}) {
   const service=new Feedback(db);
   const cookieName=config.sessionCookie||'feedback_session',cookiePath=config.basePath?config.basePath+'/':'/';
   const app=new Hono<{Variables:{auth:Record<string,any>|undefined;admin:boolean}}>();
@@ -54,6 +54,7 @@ export function createApp(db:Storage,config:{ssoSecret?:string;siteName?:string;
   app.post('/api/logout',async c=>{const a=c.get('auth');if(a&&a.kind!=='api')await db.run('DELETE FROM credentials WHERE id=?',[a.id]);deleteCookie(c,cookieName,{path:cookiePath});return c.json({ok:true});});
   app.post('/api/identify',async c=>{
     const p=z.object({name:z.string().trim().min(1).max(100).optional(),email:z.email().max(254).optional(),token:z.string().max(10000).optional()}).parse(await c.req.json());
+    if(config.demo&&(p.email||p.token))return c.json({error:'The demo uses a temporary display name only. Email and SSO are not accepted.'},400);
     let userId=id();
     if(p.token) {
       if(!config.ssoSecret)return c.json({error:'SSO is not configured'},400);
@@ -124,7 +125,7 @@ export function createApp(db:Storage,config:{ssoSecret?:string;siteName?:string;
     const result=await rpc(service,body);return result?c.json(result):c.body(null,202);
   });
   app.get('/mcp',c=>c.json({error:'Use stateless Streamable HTTP POST'},405));
-  app.get('/assets/app.js',c=>c.body('const BASE='+JSON.stringify(config.basePath||'')+';\n'+client,200,{'Content-Type':'application/javascript'}));
+  app.get('/assets/app.js',c=>c.body('const BASE='+JSON.stringify(config.basePath||'')+';\nconst DEMO='+JSON.stringify(!!config.demo)+';\n'+client,200,{'Content-Type':'application/javascript'}));
   app.get('/assets/style.css',c=>c.body(css,200,{'Content-Type':'text/css'}));
   app.get('/widget.js',c=>c.body(widget,200,{'Content-Type':'application/javascript','Cross-Origin-Resource-Policy':'cross-origin'}));
   for(const path of ['/','/roadmap','/changelog','/admin','/widget','/posts/:id'])app.get(path,c=>c.html(html.replaceAll('/assets/',(config.basePath||'')+'/assets/')));

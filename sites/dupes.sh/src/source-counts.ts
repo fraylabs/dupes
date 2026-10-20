@@ -40,6 +40,7 @@ export async function sourceStats(db:Storage,input:Record<string,string>) {
   const visits=await db.all('SELECT day,path,source,views FROM site_daily_visits WHERE day>=? AND day<=?'+filter+' ORDER BY day DESC,path,source LIMIT ? OFFSET ?',[query.from,query.to,...sourceValues,query.limit+1,query.offset]);
   const end=new Date(toTime+86400000).toISOString();
   const signups=await db.all('SELECT substr(created,1,10) day,source,count(*) signups FROM site_waitlist WHERE created>=? AND created<?'+filter+' GROUP BY substr(created,1,10),source ORDER BY day DESC,source LIMIT ? OFFSET ?',[query.from+'T00:00:00.000Z',end,...sourceValues,query.limit+1,query.offset]);
-  const more=visits.length>query.limit||signups.length>query.limit;
-  return {from:query.from,to:query.to,timezone:'UTC',metric:'HTML page views, not unique people or installs; signups are current waitlist entries by signup day',visits:visits.slice(0,query.limit),signups:signups.slice(0,query.limit),nextOffset:more?query.offset+query.limit:null};
+  const hostedSignups=await db.all('SELECT substr(created,1,10) day,source,count(*) signups FROM workspace_signups WHERE created>=? AND created<?'+filter+' GROUP BY substr(created,1,10),source ORDER BY day DESC,source LIMIT ? OFFSET ?',[query.from+'T00:00:00.000Z',end,...sourceValues,query.limit+1,query.offset]);
+  const more=visits.length>query.limit||signups.length>query.limit||hostedSignups.length>query.limit;
+  return {from:query.from,to:query.to,timezone:'UTC',metric:'HTML page views, not unique people or installs; signups and hostedSignups are current waitlist/workspace entries by signup day',visits:visits.slice(0,query.limit),signups:signups.slice(0,query.limit),hostedSignups:hostedSignups.slice(0,query.limit),nextOffset:more?query.offset+query.limit:null};
 }
