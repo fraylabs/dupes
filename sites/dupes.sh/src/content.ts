@@ -3,7 +3,7 @@
 const CHECKED_ON:Record<string,string>={'https://canny.io/pricing':'2026-10-20','https://fider.io/pricing':'2026-10-20','https://upvoty.com/pricing':'2026-10-20','https://featurebase.app/pricing':'2026-10-20','https://frill.co/pricing':'2026-10-20'};
 type Entry={path:string;title:string;description:string;names:string[];date?:string;body:string};
 const src=(href:string,label:string)=>`<a href="${href}" rel="nofollow noopener">${label}</a>`;
-const cta=`<p><a class="button" href="/vote">Try the live voting board<span aria-hidden="true"> ↗</span></a> <a class="button secondary" href="/waitlist?utm_source=content">Join the hosted waitlist<span aria-hidden="true"> ↗</span></a></p>`;
+const cta=`<p><a class="button" href="/vote">Try the live voting board<span aria-hidden="true"> ↗</span></a> <a class="button secondary" href="/i/next-dupe/?board=candidates">Open the live board<span aria-hidden="true"> ↗</span></a> <a class="button secondary" href="/waitlist?utm_source=content">Join the hosted waitlist<span aria-hidden="true"> ↗</span></a></p>`;
 const head=(eyebrow:string,h1:string,lead:string)=>`<section class="page-head compact"><p class="eyebrow">${eyebrow}</p><h1>${h1}</h1><p class="lead">${lead}</p></section>`;
 const checked=(url:string)=>`<p class="small">Source: ${src(url,url.replace('https://',''))}, checked ${CHECKED_ON[url]}. Prices change; check the source before you decide.</p>`;
 
@@ -33,6 +33,7 @@ ${cta}</section>`},
 body:head('FIDER ALTERNATIVE','Looking at Fider?<br><em>Here is how we compare.</em>','Both are free feedback boards you can host yourself. This is where we differ, and where Fider is the better pick.')+`<section class="prose">
 <h2>What Fider does well</h2>
 <p>Fider is an established open-source feedback board. Its hosted free plan allows unlimited customers, voting and discussion with a fair-use limit of 250 feedback items, and it lists a Pro plan for more advanced features such as SEO indexing.</p>
+<table class="compare"><thead><tr><th>Plan</th><th>Price</th><th>Notes</th></tr></thead><tbody><tr><td>Fider Free</td><td>$0</td><td>Unlimited customers, voting and members; 250 feedback items fair use</td></tr><tr><td>Fider Pro</td><td>$25/month in the plan listing (its FAQ text says $49)</td><td>More advanced features, such as SEO indexing</td></tr><tr><td>Dupes Feedback, self-hosted</td><td>$0 plus your server</td><td>No item cap</td></tr><tr><td>Dupes Feedback, hosted</td><td>Not open yet; no price</td><td>n/a</td></tr></tbody></table>
 ${checked('https://fider.io/pricing')}
 <h2>Where Dupes Feedback differs</h2>
 <ul><li>Built-in roadmap and changelog alongside boards and voting.</li><li>REST API and an MCP endpoint, so a coding agent can read requests and close the loop when work ships.</li><li>An importer for Canny, for teams moving off a paid tool.</li><li>A hosted platform you can provision with one API call (hosted access isn't open yet; join the waitlist).</li></ul>
@@ -43,6 +44,7 @@ ${cta}</section>`},
 body:head('FRILL ALTERNATIVE','Looking at Frill?<br><em>Here is how we compare.</em>','Frill prices by plan, not by tracked user. Here is where a free, self-hosted board differs.')+`<section class="prose">
 <h2>What Frill offers</h2>
 <p>Frill's pricing page lists four plans with a 14-day free trial: Startup at $25/month (50 ideas), Business at $49/month, Growth at $149/month and Enterprise at $349/month. All list unlimited tracked users and unlimited teammates. Frill lists a Canny import and a developer API on its feature table.</p>
+<table class="compare"><thead><tr><th>Plan</th><th>Price</th><th>Notes</th></tr></thead><tbody><tr><td>Frill Startup</td><td>$25/month</td><td>50 ideas, 1 survey</td></tr><tr><td>Frill Business</td><td>$49/month</td><td>Unlimited ideas, 3 surveys</td></tr><tr><td>Frill Growth</td><td>$149/month</td><td>Privacy, surveys, white labeling</td></tr><tr><td>Frill Enterprise</td><td>$349/month</td><td>SOC2, audit logs, dedicated hosting</td></tr><tr><td>Dupes Feedback, self-hosted</td><td>$0 plus your server</td><td>No idea cap</td></tr><tr><td>Dupes Feedback, hosted</td><td>Not open yet; no price</td><td>n/a</td></tr></tbody></table>
 ${checked('https://frill.co/pricing')}
 <h2>Where Dupes Feedback differs</h2>
 <ul><li>Free to self-host (AGPL-3.0), with no cap on ideas and no plan to outgrow.</li><li>Your data stays on your own server.</li><li>Boards, votes, roadmap, changelog, REST and MCP in every install.</li><li>Import from Canny, using your own API key.</li></ul>
@@ -53,6 +55,7 @@ ${cta}</section>`},
 body:head('FEATUREBASE ALTERNATIVE','Looking at Featurebase?<br><em>Here is how we compare.</em>','Featurebase is a helpdesk with feedback included. Dupes Feedback only does the feedback part, and does it on your server.')+`<section class="prose">
 <h2>What Featurebase offers</h2>
 <p>Featurebase's pricing page offers one subscription covering helpdesk and feedback. It lists a Free plan with 1 seat, then Growth at $29, Professional at $59 and Enterprise at $99 per seat per month billed yearly, plus $0.49 per AI resolution. Feedback is listed as included in every plan, and API, MCP and webhooks are listed from Growth.</p>
+<table class="compare"><thead><tr><th>Plan</th><th>Price</th><th>Notes</th></tr></thead><tbody><tr><td>Featurebase Free</td><td>$0</td><td>1 seat; helpdesk with feedback included</td></tr><tr><td>Featurebase Growth</td><td>$29/seat/month, billed yearly</td><td>API, MCP, webhooks listed</td></tr><tr><td>Featurebase Professional</td><td>$59/seat/month, billed yearly</td><td>Workflows, SLAs, Salesforce and HubSpot</td></tr><tr><td>Featurebase Enterprise</td><td>$99/seat/month, billed yearly</td><td>SSO, custom admin roles</td></tr><tr><td>Dupes Feedback, self-hosted</td><td>$0 plus your server</td><td>Feedback only; no helpdesk</td></tr><tr><td>Dupes Feedback, hosted</td><td>Not open yet; no price</td><td>n/a</td></tr></tbody></table>
 ${checked('https://featurebase.app/pricing')}
 <h2>Where Dupes Feedback differs</h2>
 <ul><li>Feedback only: boards, votes, comments, roadmap and changelog, with no helpdesk to pay for or ignore.</li><li>Free to self-host (AGPL-3.0), with no per-seat pricing.</li><li>REST and MCP in every install, and import from Canny.</li></ul>
@@ -63,6 +66,7 @@ ${cta}</section>`},
 body:head('UPVOTY ALTERNATIVE','Looking at Upvoty?<br><em>Here is how we compare.</em>','Upvoty prices by plan, not by tracked user. That makes it one of the fairer hosted options. Here is where Dupes differs.')+`<section class="prose">
 <h2>What Upvoty offers</h2>
 <p>Upvoty lists three plans with a 14-day free trial: Power at $15/month, Super at $25/month and Hyper at $49/month (billed monthly), all with unlimited boards and unlimited tracked users. The changelog is listed from Super up; API, webhooks and an Upvoty MCP are listed on Hyper.</p>
+<table class="compare"><thead><tr><th>Plan</th><th>Price (billed monthly)</th><th>Notes</th></tr></thead><tbody><tr><td>Upvoty Power</td><td>$15/month</td><td>1 project, unlimited boards and tracked users, public roadmap, API access listed</td></tr><tr><td>Upvoty Super</td><td>$25/month</td><td>Adds changelog and all integrations</td></tr><tr><td>Upvoty Hyper</td><td>$49/month</td><td>Unlimited projects, Upvoty MCP, API and webhooks</td></tr><tr><td>Dupes Feedback, self-hosted</td><td>$0 plus your server</td><td>Roadmap, changelog, REST and MCP in every install</td></tr><tr><td>Dupes Feedback, hosted</td><td>Not open yet; no price</td><td>n/a</td></tr></tbody></table>
 ${checked('https://upvoty.com/pricing')}
 <h2>Where Dupes Feedback differs</h2>
 <ul><li>Free to self-host (AGPL-3.0), so your data stays on your server and there is no monthly plan to outgrow.</li><li>Roadmap, changelog, REST and MCP are in every install, not tied to a tier.</li><li>Import from Canny for teams leaving a paid tool.</li></ul>
