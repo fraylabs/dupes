@@ -1,3 +1,13 @@
+// Remember only the landing source category for this tab, never a visitor ID.
+// Navigation within the site retains it; a new campaign/external entry resets it.
+const pageSource=document.querySelector('meta[name="dupes-source"]')?.content||'direct';
+let landingSource=pageSource;
+try{
+  let external=false;try{external=!!document.referrer&&new URL(document.referrer).origin!==location.origin;}catch{}
+  const savedSource=sessionStorage.getItem('dupes-landing-source');
+  if(new URL(location.href).searchParams.has('utm_source')||external||!savedSource)sessionStorage.setItem('dupes-landing-source',pageSource);
+  landingSource=sessionStorage.getItem('dupes-landing-source')||pageSource;
+}catch{}
 const form=document.querySelector('#waitlist-form');
 if(form){
   const status=document.querySelector('#form-status'),leave=document.querySelector('#leave-waitlist');
@@ -7,7 +17,7 @@ if(form){
     e.preventDefault();const button=form.querySelector('button');button.disabled=true;status.textContent='Saving your request…';
     const fields=new FormData(form),email=String(fields.get('email')).trim().toLowerCase();
     try{
-      const response=await fetch('/api/waitlist',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,consent:fields.get('consent')==='on',website:fields.get('website')||''})});
+      const response=await fetch('/api/waitlist',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,consent:fields.get('consent')==='on',website:fields.get('website')||'',source:landingSource})});
       if(!response.ok)throw Error('We couldn’t save that. Check your email and try again.');
       const data=await response.json();let storage=true;
       try{if(saved()?.email!==email)localStorage.setItem('dupes-waitlist',JSON.stringify({email,token:data.removalToken}));}catch{storage=false;}
