@@ -11,6 +11,7 @@ import { deliverPending,publicFetch,type Delivery } from '../../../dupes/forms/s
 import { ownedInstances,pagination,crossAppSearch,workspaceRPC } from './workspace.ts';
 import { platformOwner } from './workspace-auth.ts';
 import { DEMO_ID,resetDemo,publicMaintenance } from './demo.ts';
+import { poweredByCSS,withPoweredBy } from './powered-by.ts';
 import { connectionAddress,rateLimit } from './public-limits.ts';
 type WebhookBinding={WEBHOOK_RECEIVER?:{fetch(request:Request):Promise<Response>};WEBHOOK_RECEIVER_ORIGIN?:string};
 type Env=WebhookBinding&{DB:Parameters<typeof d1Storage>[0];PLATFORM_API_KEYS:string;PUBLIC_ORIGIN?:string;SSO_SECRET?:string;ABUSE_SECRET?:string};
@@ -22,7 +23,7 @@ function webhookDelivery(env:WebhookBinding):Delivery|undefined {
     await response.body?.cancel();return response.status;
   };
 }
-type Instance={id:string;owner_hash:string;app:string;name:string;created:string;requests:number};
+type Instance={id:string;owner_hash:string;app:string;name:string;created:string;requests:number;powered_by?:number};
 const platform=new Hono<{Bindings:Env;Variables:{owner:string;db:Storage}}>();
 platform.use('*',bodyLimit({maxSize:2*1024*1024}));
 platform.use('*',async(c,next)=>{c.header('Cache-Control','no-store');c.set('db',d1Storage(c.env.DB));await next();});
@@ -100,13 +101,14 @@ platform.all('/i/:tenant/*',async c=>{
   const instance=await db.get<Instance>('SELECT * FROM instances WHERE id=?',[tenant]);if(!instance)return c.json({error:'Instance not found'},404);
   await db.run('UPDATE instances SET requests=requests+1 WHERE id=?',[tenant]);
   const internalBase='/i/'+tenant,base=tenant===DEMO_ID?'/demo':internalBase;const url=new URL(c.req.url);url.pathname=url.pathname.slice(internalBase.length)||'/';
+  if(url.pathname==='/assets/powered-by.css')return c.text(poweredByCSS,200,{'Content-Type':'text/css; charset=utf-8'});
   if(instance.app==='forms'){
     const forms=createFormsApp(db,{tenant,basePath:base,siteName:instance.name,publicOrigin:c.env.PUBLIC_ORIGIN||url.origin,background:p=>c.executionCtx.waitUntil(p),sendWebhook:webhookDelivery(c.env)});
-    return forms.fetch(new Request(url,c.req.raw));
+    return withPoweredBy(await forms.fetch(new Request(url,c.req.raw)),instance,url.pathname,base);
   }
   const scoped=tenantStorage(db,tenant);
   const app=createApp(scoped,{siteName:instance.name,publicOrigin:c.env.PUBLIC_ORIGIN||url.origin,ssoSecret:tenant===DEMO_ID?undefined:c.env.SSO_SECRET,basePath:base,sessionCookie:'feedback_'+tenant,demo:tenant===DEMO_ID});
-  const response=await app.fetch(new Request(url,c.req.raw));
+  const response=await withPoweredBy(await app.fetch(new Request(url,c.req.raw)),instance,url.pathname,base);
   if(tenant===DEMO_ID&&response.headers.get('Content-Type')?.includes('text/html')){
     const signupUrl=new URL('/signup',c.env.PUBLIC_ORIGIN||url.origin).href;
     const html=(await response.text()).replace('</head>','<link rel="stylesheet" href="/demo-notice.css"></head>').replace('<body>','<body><aside class="demo-notice"><strong>Interactive demo · sample data · resets daily at midnight UTC.</strong> Try a post, vote or comment without an account. Everything here is public and temporary; please leave out personal information. <a href="'+signupUrl+'">Create your own workspace →</a></aside>');
