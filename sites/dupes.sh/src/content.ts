@@ -143,6 +143,33 @@ ${checked('https://canny.io/pricing')}
 <p>Dupes Feedback ships REST and MCP in the box, on a free self-hosted install or a hosted instance provisioned with one API call. The same board runs <a href="/vote">our own vote for the next dupe</a>, so you can see it working.</p>
 <h2>One caution</h2>
 <p>Let the agent propose status changes rather than publish customer-facing posts on its own. A human reading the changelog before it goes out is cheap insurance.</p>
+${cta}</section>`},
+{path:'/blog/roadmap-vs-changelog',title:'Roadmap vs changelog: what each one is for',description:'A roadmap says what you might build. A changelog says what you did. Why a feedback board needs both, and how to keep them honest.',names:[],date:'2026-10-22',
+body:head('PRODUCT BASICS','Roadmap vs changelog:<br><em>what each is for</em>','One looks forward, one looks back. Mixing them up costs you trust.')+`<section class="prose">
+<p>A customer asks for something on your feedback board. Two questions follow: will you build it, and did you? A roadmap answers the first. A changelog answers the second.</p>
+<h2>The roadmap</h2>
+<p>A roadmap is a list of what you are considering, building or have decided against. Keep it to a few honest states, such as <em>planned</em>, <em>in progress</em> and <em>not planned</em>. Leave out dates you can't keep: a date you miss does more damage than no date.</p>
+<h2>The changelog</h2>
+<p>A changelog is a dated list of what shipped, written for the people who asked. One line per change is enough, with a link back to the request that prompted it.</p>
+<h2>Why the board needs both</h2>
+<ul><li><strong>Voters get an answer.</strong> A request with no status looks ignored. A status, even "not planned", tells people you read it.</li><li><strong>Shipping closes the loop.</strong> When a request moves to done and a changelog entry appears, everyone who voted can see their vote counted.</li><li><strong>It keeps you honest.</strong> A changelog is a record. If the roadmap says "planned" for six months and nothing appears, the gap is visible.</li></ul>
+<h2>A small habit that works</h2>
+<p>When you ship, change the request's status first and write the changelog line second, in the same sitting. Doing both together is easier than catching up later.</p>
+<p>Dupes Feedback has a public board, a roadmap and a changelog in one place. You can see them working on <a href="/vote">our own vote for the next dupe</a>.</p>
+${cta}</section>`},
+{path:'/blog/how-to-get-customers-to-use-your-feedback-board',title:'How to get customers to actually use your feedback board',description:'Most feedback boards sit empty. Five plain habits that get customers to post and vote, none of which involve a bigger widget.',names:[],date:'2026-10-22',
+body:head('FEEDBACK HABITS','How to get customers to<br><em>actually use your board</em>','An empty board is a worse signal than no board. Here is what fills one.')+`<section class="prose">
+<p>Setting up a feedback board takes an afternoon. Getting people to use it takes habits. These five are cheap and work for most small products.</p>
+<h2>1. Seed it yourself</h2>
+<p>A blank board tells visitors nobody cares. Before you share it, add the ten requests you hear most often, in the customers' own words.</p>
+<h2>2. Link it where the question comes up</h2>
+<p>When support hears "can you add X?", reply with a link to the board post for X, or create it and then link it. People vote on things they are pointed to.</p>
+<h2>3. Answer fast, even with no</h2>
+<p>A reply within a day, including "not planned, and here is why", teaches people that posting is worth the effort.</p>
+<h2>4. Tell voters when it ships</h2>
+<p>Everyone who voted should hear when a request is done. That one message is what turns a voter into a repeat voter. See <a href="/blog/roadmap-vs-changelog">roadmap vs changelog</a> for how to keep that record.</p>
+<h2>5. Don't let the price decide who may vote</h2>
+<p>If your tool charges by the number of people who speak up, you will be tempted to invite fewer of them. Check <a href="/blog/what-is-a-tracked-user">how your tool counts users</a> before you invite everyone, or pick a board where voting is not what you pay for.</p>
 ${cta}</section>`}
 ];
 export function contentPage(path:string):Entry|'index'|undefined {
