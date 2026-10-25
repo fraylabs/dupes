@@ -1,9 +1,9 @@
 // Alternative/comparison pages and problem-led posts. Competitor facts come only from their public pages (source + checked date).
 // Each source carries its own checked date; change only the one you re-checked.
-const CHECKED_ON:Record<string,string>={'https://canny.io/pricing':'2026-10-20','https://fider.io/pricing':'2026-10-20','https://upvoty.com/pricing':'2026-10-20','https://featurebase.app/pricing':'2026-10-20','https://frill.co/pricing':'2026-10-20'};
+const CHECKED_ON:Record<string,string>={'https://canny.io/pricing':'2026-10-25','https://fider.io/pricing':'2026-10-20','https://upvoty.com/pricing':'2026-10-25','https://featurebase.app/pricing':'2026-10-20','https://frill.co/pricing':'2026-10-25'};
 type Entry={path:string;title:string;description:string;names:string[];date?:string;body:string};
 const src=(href:string,label:string)=>`<a href="${href}" rel="nofollow noopener">${label}</a>`;
-const cta=`<p><a class="button" href="/vote">Try the live voting board<span aria-hidden="true"> ↗</span></a> <a class="button secondary" href="/i/next-dupe/?board=candidates">Open the live board<span aria-hidden="true"> ↗</span></a> <a class="button secondary" href="/waitlist?utm_source=content">Join the hosted waitlist<span aria-hidden="true"> ↗</span></a></p>`;
+const cta=`<p><a class="button" href="/vote">Try the live voting board<span aria-hidden="true"> ↗</span></a> <a class="button secondary" href="/i/next-dupe/?board=candidates">Open the live board<span aria-hidden="true"> ↗</span></a> <a class="button secondary" href="/signup?utm_source=content">Start free hosted<span aria-hidden="true"> ↗</span></a></p>`;
 const head=(eyebrow:string,h1:string,lead:string)=>`<section class="page-head compact"><p class="eyebrow">${eyebrow}</p><h1>${h1}</h1><p class="lead">${lead}</p></section>`;
 const checked=(url:string)=>`<p class="small">Source: ${src(url,url.replace('https://',''))}, checked ${CHECKED_ON[url]}. Prices change; check the source before you decide.</p>`;
 
@@ -11,17 +11,17 @@ export const entries:Entry[]=[
 {path:'/alternatives/canny',title:'A free alternative to Canny',description:'Dupes Feedback is a free, self-hostable alternative to Canny: boards, votes, roadmap, changelog, REST, MCP and import from Canny.',names:['Canny'],
 body:head('ALTERNATIVE TO CANNY','A free alternative<br><em>to Canny.</em>','Feedback boards, votes, roadmap and changelog you can run yourself, without paying by the tracked user.')+`<section class="prose">
 <h2>The short version</h2>
-<p>Canny is a hosted feedback tool. Dupes Feedback covers the same core job (boards, votes, roadmap and changelog) and is free to self-host (AGPL-3.0). If you'd rather not run a server, a hosted version is coming; there's a waitlist and no price yet.</p>
+<p>Canny is a hosted feedback tool. Dupes Feedback covers the same core job (boards, votes, roadmap and changelog) and is free to self-host (AGPL-3.0). If you'd rather not run a server, a free hosted workspace is live at <a href="/signup">/signup</a>. One instance per workspace, no tracked-user limit. Paid plans come later; no price is set yet.</p>
 <h2>Side by side</h2>
 <table class="compare"><thead><tr><th></th><th>Canny</th><th>Dupes Feedback</th></tr></thead><tbody>
 <tr><th>Free option</th><td>Free plan, 25 tracked users</td><td>Free to self-host, no tracked-user limit</td></tr>
-<tr><th>Paid price</th><td>Pro from $79/month billed yearly (100+ tracked users); Business is custom</td><td>Hosted plan not open yet; no price announced</td></tr>
+<tr><th>Paid price</th><td>Pro from $79/month billed yearly (100+ tracked users); Business is custom</td><td>Hosted Free: one instance per workspace; paid plans not priced yet</td></tr>
 <tr><th>How price grows</th><td>With tracked users, meaning anyone who posts, votes or comments</td><td>Self-hosted: your server cost only</td></tr>
 <tr><th>Boards, voting, comments</th><td>Yes</td><td>Yes</td></tr>
 <tr><th>Roadmap and changelog</th><td>Yes</td><td>Yes</td></tr>
 <tr><th>API / MCP for coding agents</th><td>API, webhooks and MCP connectors listed on its pricing page</td><td>REST and MCP built in</td></tr>
 <tr><th>Import from Canny</th><td>n/a</td><td>Yes, with your own Canny API key</td></tr>
-<tr><th>Your data lives</th><td>On Canny's servers</td><td>On your server (self-hosted)</td></tr>
+<tr><th>Your data lives</th><td>On Canny's servers</td><td>On your server (self-hosted), or Cloudflare Workers and D1 (hosted)</td></tr>
 </tbody></table>
 ${checked('https://canny.io/pricing')}
 <h2>Who should stay on Canny</h2>
@@ -33,10 +33,10 @@ ${cta}</section>`},
 body:head('FIDER ALTERNATIVE','Looking at Fider?<br><em>Here is how we compare.</em>','Both are free feedback boards you can host yourself. This is where we differ, and where Fider is the better pick.')+`<section class="prose">
 <h2>What Fider does well</h2>
 <p>Fider is an established open-source feedback board. Its hosted free plan allows unlimited customers, voting and discussion with a fair-use limit of 250 feedback items, and it lists a Pro plan for more advanced features such as SEO indexing.</p>
-<table class="compare"><thead><tr><th>Plan</th><th>Price</th><th>Notes</th></tr></thead><tbody><tr><td>Fider Free</td><td>$0</td><td>Unlimited customers, voting and members; 250 feedback items fair use</td></tr><tr><td>Fider Pro</td><td>$25/month in the plan listing (its FAQ text says $49)</td><td>More advanced features, such as SEO indexing</td></tr><tr><td>Dupes Feedback, self-hosted</td><td>$0 plus your server</td><td>No item cap</td></tr><tr><td>Dupes Feedback, hosted</td><td>Not open yet; no price</td><td>n/a</td></tr></tbody></table>
+<table class="compare"><thead><tr><th>Plan</th><th>Price</th><th>Notes</th></tr></thead><tbody><tr><td>Fider Free</td><td>$0</td><td>Unlimited customers, voting and members; 250 feedback items fair use</td></tr><tr><td>Fider Pro</td><td>$25/month in the plan listing (its FAQ text says $49)</td><td>More advanced features, such as SEO indexing</td></tr><tr><td>Dupes Feedback, self-hosted</td><td>$0 plus your server</td><td>No item cap</td></tr><tr><td>Dupes Feedback, hosted</td><td>Free workspace</td><td>One instance; no tracked-user limit; paid plans later, no price yet</td></tr></tbody></table>
 ${checked('https://fider.io/pricing')}
 <h2>Where Dupes Feedback differs</h2>
-<ul><li>Built-in roadmap and changelog alongside boards and voting.</li><li>REST API and an MCP endpoint, so a coding agent can read requests and close the loop when work ships.</li><li>An importer for Canny, for teams moving off a paid tool.</li><li>A hosted platform you can provision with one API call (hosted access isn't open yet; join the waitlist).</li></ul>
+<ul><li>Built-in roadmap and changelog alongside boards and voting.</li><li>REST API and an MCP endpoint, so a coding agent can read requests and close the loop when work ships.</li><li>An importer for Canny, for teams moving off a paid tool.</li><li>A hosted platform you can provision with one API call (one free hosted instance per workspace; <a href="/signup">start now</a>).</li></ul>
 <h2>Where Fider may fit better</h2>
 <p>Fider has been around longer and has a larger community. If you only need a simple board and it already does what you need, there's no reason to switch.</p>
 ${cta}</section>`},
@@ -44,34 +44,34 @@ ${cta}</section>`},
 body:head('FRILL ALTERNATIVE','Looking at Frill?<br><em>Here is how we compare.</em>','Frill prices by plan, not by tracked user. Here is where a free, self-hosted board differs.')+`<section class="prose">
 <h2>What Frill offers</h2>
 <p>Frill's pricing page lists four plans with a 14-day free trial: Startup at $25/month (50 ideas), Business at $49/month, Growth at $149/month and Enterprise at $349/month. All list unlimited tracked users and unlimited teammates. Frill lists a Canny import and a developer API on its feature table.</p>
-<table class="compare"><thead><tr><th>Plan</th><th>Price</th><th>Notes</th></tr></thead><tbody><tr><td>Frill Startup</td><td>$25/month</td><td>50 ideas, 1 survey</td></tr><tr><td>Frill Business</td><td>$49/month</td><td>Unlimited ideas, 3 surveys</td></tr><tr><td>Frill Growth</td><td>$149/month</td><td>Privacy, surveys, white labeling</td></tr><tr><td>Frill Enterprise</td><td>$349/month</td><td>SOC2, audit logs, dedicated hosting</td></tr><tr><td>Dupes Feedback, self-hosted</td><td>$0 plus your server</td><td>No idea cap</td></tr><tr><td>Dupes Feedback, hosted</td><td>Not open yet; no price</td><td>n/a</td></tr></tbody></table>
+<table class="compare"><thead><tr><th>Plan</th><th>Price</th><th>Notes</th></tr></thead><tbody><tr><td>Frill Startup</td><td>$25/month</td><td>50 ideas, 1 survey</td></tr><tr><td>Frill Business</td><td>$49/month</td><td>Unlimited ideas, 3 surveys</td></tr><tr><td>Frill Growth</td><td>$149/month</td><td>Privacy, surveys, white labeling</td></tr><tr><td>Frill Enterprise</td><td>$349/month</td><td>SOC2, audit logs, dedicated hosting</td></tr><tr><td>Dupes Feedback, self-hosted</td><td>$0 plus your server</td><td>No idea cap</td></tr><tr><td>Dupes Feedback, hosted</td><td>Free workspace</td><td>One instance; no tracked-user limit; paid plans later, no price yet</td></tr></tbody></table>
 ${checked('https://frill.co/pricing')}
 <h2>Where Dupes Feedback differs</h2>
 <ul><li>Free to self-host (AGPL-3.0), with no cap on ideas and no plan to outgrow.</li><li>Your data stays on your own server.</li><li>Boards, votes, roadmap, changelog, REST and MCP in every install.</li><li>Import from Canny, using your own API key.</li></ul>
 <h2>Where Frill may fit better</h2>
-<p>Frill is hosted today, with surveys and an embeddable widget. Dupes' hosted plan isn't open yet and has no price. If you want a hosted board now, Frill is a reasonable choice.</p>
+<p>Frill is hosted today, with surveys and an embeddable widget. Dupes offers one free hosted instance per workspace, with no tracked-user limit. Paid plans come later; no price is set yet. If you want a hosted board now, Frill is a reasonable choice.</p>
 ${cta}</section>`},
 {path:'/alternatives/featurebase',title:'Dupes Feedback and Featurebase compared',description:'Featurebase bundles feedback with a helpdesk and charges per seat. Dupes Feedback is a free, self-hostable feedback board.',names:['Featurebase'],
 body:head('FEATUREBASE ALTERNATIVE','Looking at Featurebase?<br><em>Here is how we compare.</em>','Featurebase is a helpdesk with feedback included. Dupes Feedback only does the feedback part, and does it on your server.')+`<section class="prose">
 <h2>What Featurebase offers</h2>
 <p>Featurebase's pricing page offers one subscription covering helpdesk and feedback. It lists a Free plan with 1 seat, then Growth at $29, Professional at $59 and Enterprise at $99 per seat per month billed yearly, plus $0.49 per AI resolution. Feedback is listed as included in every plan, and API, MCP and webhooks are listed from Growth.</p>
-<table class="compare"><thead><tr><th>Plan</th><th>Price</th><th>Notes</th></tr></thead><tbody><tr><td>Featurebase Free</td><td>$0</td><td>1 seat; helpdesk with feedback included</td></tr><tr><td>Featurebase Growth</td><td>$29/seat/month, billed yearly</td><td>API, MCP, webhooks listed</td></tr><tr><td>Featurebase Professional</td><td>$59/seat/month, billed yearly</td><td>Workflows, SLAs, Salesforce and HubSpot</td></tr><tr><td>Featurebase Enterprise</td><td>$99/seat/month, billed yearly</td><td>SSO, custom admin roles</td></tr><tr><td>Dupes Feedback, self-hosted</td><td>$0 plus your server</td><td>Feedback only; no helpdesk</td></tr><tr><td>Dupes Feedback, hosted</td><td>Not open yet; no price</td><td>n/a</td></tr></tbody></table>
+<table class="compare"><thead><tr><th>Plan</th><th>Price</th><th>Notes</th></tr></thead><tbody><tr><td>Featurebase Free</td><td>$0</td><td>1 seat; helpdesk with feedback included</td></tr><tr><td>Featurebase Growth</td><td>$29/seat/month, billed yearly</td><td>API, MCP, webhooks listed</td></tr><tr><td>Featurebase Professional</td><td>$59/seat/month, billed yearly</td><td>Workflows, SLAs, Salesforce and HubSpot</td></tr><tr><td>Featurebase Enterprise</td><td>$99/seat/month, billed yearly</td><td>SSO, custom admin roles</td></tr><tr><td>Dupes Feedback, self-hosted</td><td>$0 plus your server</td><td>Feedback only; no helpdesk</td></tr><tr><td>Dupes Feedback, hosted</td><td>Free workspace</td><td>One instance; no tracked-user limit; paid plans later, no price yet</td></tr></tbody></table>
 ${checked('https://featurebase.app/pricing')}
 <h2>Where Dupes Feedback differs</h2>
 <ul><li>Feedback only: boards, votes, comments, roadmap and changelog, with no helpdesk to pay for or ignore.</li><li>Free to self-host (AGPL-3.0), with no per-seat pricing.</li><li>REST and MCP in every install, and import from Canny.</li></ul>
 <h2>Where Featurebase may fit better</h2>
-<p>If you also want live chat, a shared inbox and an AI support agent in the same tool, Featurebase covers that and Dupes doesn't. Dupes' hosted plan isn't open yet and has no price.</p>
+<p>If you also want live chat, a shared inbox and an AI support agent in the same tool, Featurebase covers that and Dupes doesn't. Dupes offers one free hosted instance per workspace, with no tracked-user limit. Paid plans come later; no price is set yet.</p>
 ${cta}</section>`},
 {path:'/alternatives/upvoty',title:'Dupes Feedback and Upvoty compared',description:'Upvoty and Dupes Feedback compared: flat monthly plans versus a free, self-hostable board with REST and MCP built in.',names:['Upvoty'],
 body:head('UPVOTY ALTERNATIVE','Looking at Upvoty?<br><em>Here is how we compare.</em>','Upvoty prices by plan, not by tracked user. That makes it one of the fairer hosted options. Here is where Dupes differs.')+`<section class="prose">
 <h2>What Upvoty offers</h2>
 <p>Upvoty lists three plans with a 14-day free trial: Power at $15/month, Super at $25/month and Hyper at $49/month (billed monthly), all with unlimited boards and unlimited tracked users. The changelog is listed from Super up; API, webhooks and an Upvoty MCP are listed on Hyper.</p>
-<table class="compare"><thead><tr><th>Plan</th><th>Price (billed monthly)</th><th>Notes</th></tr></thead><tbody><tr><td>Upvoty Power</td><td>$15/month</td><td>1 project, unlimited boards and tracked users, public roadmap, API access listed</td></tr><tr><td>Upvoty Super</td><td>$25/month</td><td>Adds changelog and all integrations</td></tr><tr><td>Upvoty Hyper</td><td>$49/month</td><td>Unlimited projects, Upvoty MCP, API and webhooks</td></tr><tr><td>Dupes Feedback, self-hosted</td><td>$0 plus your server</td><td>Roadmap, changelog, REST and MCP in every install</td></tr><tr><td>Dupes Feedback, hosted</td><td>Not open yet; no price</td><td>n/a</td></tr></tbody></table>
+<table class="compare"><thead><tr><th>Plan</th><th>Price (billed monthly)</th><th>Notes</th></tr></thead><tbody><tr><td>Upvoty Power</td><td>$15/month</td><td>1 project, unlimited boards and tracked users, public roadmap, API access listed</td></tr><tr><td>Upvoty Super</td><td>$25/month</td><td>Adds changelog and all integrations</td></tr><tr><td>Upvoty Hyper</td><td>$49/month</td><td>Unlimited projects, Upvoty MCP, API and webhooks</td></tr><tr><td>Dupes Feedback, self-hosted</td><td>$0 plus your server</td><td>Roadmap, changelog, REST and MCP in every install</td></tr><tr><td>Dupes Feedback, hosted</td><td>Free workspace</td><td>One instance; no tracked-user limit; paid plans later, no price yet</td></tr></tbody></table>
 ${checked('https://upvoty.com/pricing')}
 <h2>Where Dupes Feedback differs</h2>
 <ul><li>Free to self-host (AGPL-3.0), so your data stays on your server and there is no monthly plan to outgrow.</li><li>Roadmap, changelog, REST and MCP are in every install, not tied to a tier.</li><li>Import from Canny for teams leaving a paid tool.</li></ul>
 <h2>Where Upvoty may fit better</h2>
-<p>Upvoty is hosted today at a clear price. Dupes' hosted plan isn't open yet and has no price. If you want a hosted board now and don't mind a subscription, Upvoty is a reasonable choice.</p>
+<p>Upvoty is hosted today at a clear price. Dupes offers one free hosted instance per workspace, with no tracked-user limit. Paid plans come later; no price is set yet. If you want a hosted board now and don't mind a subscription, Upvoty is a reasonable choice.</p>
 ${cta}</section>`},
 {path:'/blog/what-does-a-feedback-board-cost',title:'What does a feedback board cost? Four pricing models compared',description:'Per tracked user, flat plans, free with a cap, or self-hosted: how feedback-board pricing works and which fits you.',names:['Canny','Upvoty','Fider'],date:'2026-10-20',
 body:head('PRICING EXPLAINED','What does a feedback board cost?<br><em>Four models compared.</em>','The headline price rarely tells you what you will pay once your users start voting.')+`<section class="prose">
@@ -94,7 +94,7 @@ body:head('SELF-HOSTING','Self-hosting a feedback board:<br><em>what you actuall
 <h2>What you take on</h2>
 <ul><li><strong>Backups.</strong> Copy the data volume somewhere else on a schedule, and try restoring it once.</li><li><strong>Updates.</strong> Apply new releases, including security fixes.</li><li><strong>Uptime.</strong> If the server is down, so is the board.</li><li><strong>Email.</strong> Notifications need a mail provider you configure.</li><li><strong>Privacy duties.</strong> You are the one holding your customers' emails, so your own privacy notice should say so.</li></ul>
 <h2>When it makes sense</h2>
-<p>When you already run a server, care where the data lives, or want a board your own agents can read through REST or MCP. If you'd rather not, that's what a hosted plan is for; ours isn't open yet, and you can <a href="/waitlist?utm_source=content">join the waitlist</a>.</p>
+<p>When you already run a server, care where the data lives, or want a board your own agents can read through REST or MCP. If you'd rather not, that's what a hosted plan is for; ours offers one free instance per workspace. You can <a href="/signup?utm_source=content">start free hosted</a>; paid plans are not priced yet.</p>
 <p>Dupes Feedback is built as one process and one data volume, to keep this list short. The <a href="/docs#self-host">setup guide</a> has the details.</p>
 ${cta}</section>`},
 {path:'/blog/feedback-board-cost-at-1000-and-10000-users',title:'What a feedback board costs at 1,000 and 10,000 tracked users',description:'What the public pricing pages say a feedback board costs when 1,000 or 10,000 people vote, and where the price is only available by asking.',names:['Canny','Upvoty','Frill','Fider','Featurebase'],date:'2026-10-20',
@@ -130,7 +130,7 @@ ${checked('https://canny.io/pricing')}
 <h2>Ways out</h2>
 <ol><li><strong>Stay small.</strong> If you have fewer than 25 people giving feedback, a free plan is fine.</li><li><strong>Pick a flat-price tool.</strong> Some tools charge per admin seat or a flat monthly fee instead.</li><li><strong>Host it yourself.</strong> An open-source board costs the price of a small server and your time. Dupes Feedback is one process and one data volume, with <a href="/alternatives/canny">import from Canny</a> if you already have a board.</li></ol>
 <h2>A fair check before you leave</h2>
-<p>Self-hosting means backups, updates and uptime are yours. If that isn't what you want, a hosted plan with predictable pricing is the better answer; we're building one, and you can <a href="/waitlist?utm_source=content">join the waitlist</a>.</p>
+<p>Self-hosting means backups, updates and uptime are yours. If that isn't what you want, a hosted plan with predictable pricing is the better answer; we offer one free hosted instance per workspace, with paid plans not priced yet. You can <a href="/signup?utm_source=content">start here</a>.</p>
 ${cta}</section>`},
 {path:'/blog/can-your-coding-agent-read-your-feedback-board',title:'Can your coding agent read your feedback board?',description:'Feedback boards were built for people. Here is what changes when your coding agent can read requests, and close them when work ships.',names:['Canny'],date:'2026-10-20',
 body:head('AGENTS AND FEEDBACK','Can your coding agent<br><em>read your feedback board?</em>','Most feedback tools were designed for product managers clicking through a dashboard. That is changing.')+`<section class="prose">
