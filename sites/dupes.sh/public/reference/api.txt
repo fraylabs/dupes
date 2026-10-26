@@ -36,12 +36,16 @@ Requests and responses are JSON. Admin endpoints require a browser admin session
 | DELETE | `/api/admin/posts/:id/votes/:userId` | Remove an attributed vote |
 | GET / POST | `/api/admin/keys` | List metadata or create `{name}`; returned token shown once |
 | DELETE | `/api/admin/keys/:id` | Revoke a key |
+| GET | `/api/admin/import/canny` | Hosted Canny import progress, or `null` |
+| POST | `/api/admin/import/canny` | Run one import step `{apiKey, restart?}`; repeat until `done` is true |
 
 Status values: `open`, `under review`, `planned`, `in progress`, `complete`, `closed`. Duplicate posts retain an ID with a redirect target. Known duplicate voters count once; unattributed historical vote counts add because overlap cannot be determined.
 
 MCP: POST `/mcp` with a Bearer API key and JSON-RPC 2.0; `initialize`, `ping`, `tools/list`, `tools/call`. Notifications receive 202. No SSE stream or server-side session is required. GET returns 405. [Streamable HTTP specification](https://modelcontextprotocol.io/specification/2025-06-18/basic/transports).
 
 Canny importer follows the [official API reference](https://developers.canny.io/api-reference). Requests POST JSON with `apiKey`. Boards are v1 (single list). Categories/tags/posts/entries are v1 with skip/limit and `hasMore`. Users/votes/comments use their currently documented v2 lists with cursor and `hasNextPage`; votes/comments use `items`, users use `users`. A v1-only importer would miss the current documented list API for those resources. Requests are paced below the free plan minute limit; a 429 or server failure is retried once. A second failure stops before database writes.
+
+Hosted import (`POST /api/admin/import/canny` on a hosted instance, or the Import panel in admin) runs in steps so it fits Worker limits. Each call fetches one Canny page and saves it together with the import progress in one transaction; a failed step saves nothing, so call again to continue. Send the Canny API key with every call: it is used for that request only and never stored or logged. A 429 response carries `retryAfter` seconds while Canny rate-limits. A finished import refuses a second run (409) unless you send `restart: true`, which updates existing Canny items without duplicating them. Hosted import sends your Canny data to Dupes and stores it in your hosted workspace; the self-host CLI import keeps your key and data on your own server. Agents can drive the same REST loop with an admin API key.
 
 Import preserves board/comment privacy; categories as category tags; user IDs and contact details; posts/statuses; per-user votes plus any missing aggregate count; admin comment flags; published and draft changelog entries with post links. Media URLs, reaction counts, changelog labels and external integrations are not migrated. Entry text uses `plaintextDetails` (markdown fallback), and is rendered as plain text to prevent importing executable HTML.
 

@@ -22,14 +22,14 @@ body:head('ALTERNATIVE TO CANNY','A free alternative<br><em>to Canny.</em>','Fee
 <tr><th>Boards, voting, comments</th><td>Yes</td><td>Yes</td></tr>
 <tr><th>Roadmap and changelog</th><td>Yes</td><td>Yes</td></tr>
 <tr><th>API / MCP for coding agents</th><td>API, webhooks and MCP connectors listed on its pricing page</td><td>REST and MCP built in</td></tr>
-<tr><th>Import from Canny</th><td>n/a</td><td>Yes, with your own Canny API key</td></tr>
+<tr><th>Import from Canny</th><td>n/a</td><td>Yes, with your own Canny API key, self-hosted or hosted</td></tr>
 <tr><th>Your data lives</th><td>On Canny's servers</td><td>On your server (self-hosted), or Cloudflare Workers and D1 (hosted)</td></tr>
 </tbody></table>
 ${checked('https://canny.io/pricing')}
 <h2>Who should stay on Canny</h2>
 <p>If you need Canny's CRM and support-desk integrations, SSO or SOC 2 paperwork, or you don't want to run anything yourself, Canny is built for that. Dupes Feedback is the better fit when you want ownership of the data, no per-user pricing, or a board your coding agent can read.</p>
 <h2>Moving over</h2>
-<p>The importer reads posts, votes and comments with your own Canny API key, runs on your machine or server, and never sends your data to us. See <a href="/docs#import">Import from Canny</a>.</p>
+<p>The importer reads boards, users, posts, votes, comments and changelog with your own Canny API key. Self-hosted, it runs on your machine or server and never sends your data to us. On a hosted workspace, run it from your admin page: your key is used for the import only and never stored, and your Canny data is sent to Dupes and stored in your workspace. See <a href="/docs#import">Import from Canny</a>.</p>
 ${cta}</section>`},
 {path:'/alternatives/fider',title:'Dupes Feedback and Fider compared',description:'Fider and Dupes Feedback are both free, self-hostable feedback boards. Where they differ: hosted plans, API and MCP, and Canny import.',names:['Fider'],
 body:head('FIDER ALTERNATIVE','Looking at Fider?<br><em>Here is how we compare.</em>','Both are free feedback boards you can host yourself. This is where we differ, and where Fider is the better pick.')+`<section class="prose">
