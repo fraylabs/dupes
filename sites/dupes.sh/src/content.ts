@@ -4,6 +4,8 @@ const CHECKED_ON:Record<string,string>={'https://canny.io/pricing':'2026-10-25',
 type Entry={path:string;title:string;description:string;names:string[];date?:string;body:string};
 const src=(href:string,label:string)=>`<a href="${href}" rel="nofollow noopener">${label}</a>`;
 const cta=`<p><a class="button" href="/vote">Try the live voting board<span aria-hidden="true"> ↗</span></a> <a class="button secondary" href="/i/next-dupe/?board=candidates">Open the live board<span aria-hidden="true"> ↗</span></a> <a class="button secondary" href="/signup?utm_source=content">Start free hosted<span aria-hidden="true"> ↗</span></a></p>`;
+// Internal CTAs preserve the landing source already held by the site script.
+const newBoardCta=`<h2>Start your own feedback board</h2><p>Try posting, voting and following a roadmap in the public demo. No signup is needed; demo content is public and resets daily. Ready for your own board? Free hosted includes one Feedback instance per workspace.</p><p><a class="button" href="/signup">Start free hosted<span aria-hidden="true"> ↗</span></a> <a class="button secondary" href="/demo">Try the demo<span aria-hidden="true"> ↗</span></a></p><p class="small">Save your workspace key when you sign up. Email sign-in and lost-key recovery are not available yet.</p>`;
 const head=(eyebrow:string,h1:string,lead:string)=>`<section class="page-head compact"><p class="eyebrow">${eyebrow}</p><h1>${h1}</h1><p class="lead">${lead}</p></section>`;
 const checked=(url:string)=>`<p class="small">Source: ${src(url,url.replace('https://',''))}, checked ${CHECKED_ON[url]}. Prices change; check the source before you decide.</p>`;
 
@@ -155,8 +157,8 @@ body:head('PRODUCT BASICS','Roadmap vs changelog:<br><em>what each is for</em>',
 <ul><li><strong>Voters get an answer.</strong> A request with no status looks ignored. A status, even "not planned", tells people you read it.</li><li><strong>Shipping closes the loop.</strong> When a request moves to done and a changelog entry appears, everyone who voted can see their vote counted.</li><li><strong>It keeps you honest.</strong> A changelog is a record. If the roadmap says "planned" for six months and nothing appears, the gap is visible.</li></ul>
 <h2>A small habit that works</h2>
 <p>When you ship, change the request's status first and write the changelog line second, in the same sitting. Doing both together is easier than catching up later.</p>
-<p>Dupes Feedback has a public board, a roadmap and a changelog in one place. You can see them working on <a href="/vote">our own vote for the next dupe</a>.</p>
-${cta}</section>`},
+<p>Dupes Feedback has a public board, a roadmap and a changelog in one place. Try them on the <a href="/demo">public Feedback demo</a>.</p>
+${newBoardCta}</section>`},
 {path:'/blog/how-to-get-customers-to-use-your-feedback-board',title:'How to get customers to actually use your feedback board',description:'Most feedback boards sit empty. Five plain habits that get customers to post and vote, none of which involve a bigger widget.',names:[],date:'2026-10-22',
 body:head('FEEDBACK HABITS','How to get customers to<br><em>actually use your board</em>','An empty board is a worse signal than no board. Here is what fills one.')+`<section class="prose">
 <p>Setting up a feedback board takes an afternoon. Getting people to use it takes habits. These five are cheap and work for most small products.</p>
@@ -170,7 +172,7 @@ body:head('FEEDBACK HABITS','How to get customers to<br><em>actually use your bo
 <p>Everyone who voted should hear when a request is done. That one message is what turns a voter into a repeat voter. See <a href="/blog/roadmap-vs-changelog">roadmap vs changelog</a> for how to keep that record.</p>
 <h2>5. Don't let the price decide who may vote</h2>
 <p>If your tool charges by the number of people who speak up, you will be tempted to invite fewer of them. Check <a href="/blog/what-is-a-tracked-user">how your tool counts users</a> before you invite everyone, or pick a board where voting is not what you pay for.</p>
-${cta}</section>`}
+${newBoardCta}</section>`}
 ];
 export function contentPage(path:string):Entry|'index'|undefined {
   if(path==='/alternatives'||path==='/blog')return 'index';
