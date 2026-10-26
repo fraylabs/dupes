@@ -14,3 +14,84 @@
 .stack-hero h1{max-width:900px}.stack-bill{max-width:880px;margin:38px auto 24px;padding:30px 36px;border:1px solid var(--line);border-radius:12px;background:#fff;text-align:left;box-shadow:0 12px 35px #3d32270a}.stack-bill>.eyebrow{text-align:center;margin-bottom:25px}.bill-row{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:20px 0;border-top:1px dashed var(--line)}.bill-row>div{display:flex;align-items:start;flex-direction:column;gap:9px}.bill-row strong{font-size:18px;font-weight:550}.bill-row>b{font:35px Georgia,serif;white-space:nowrap}.bill-row b small,.bill-total strong small{font:12px ui-sans-serif,sans-serif}.availability{font-size:9px;line-height:1.5;letter-spacing:.7px;font-weight:650;padding:5px 8px;border:1px solid var(--line);border-radius:4px;display:inline-block;width:fit-content}.availability.ready{color:#47623d;background:#edf2e9}.availability.preview{color:#805c3c;background:#f5ede3}.availability.candidate{color:#777;background:#f1f1ee}.bill-total{border-top:2px solid var(--ink);margin-top:7px;padding-top:22px;display:flex;align-items:center;justify-content:space-between;gap:18px}.bill-total>span{font-size:14px;font-weight:600;max-width:330px}.bill-total small{display:block;font-size:10px;font-weight:400;color:var(--muted);margin-top:7px}.bill-total>strong{font:42px Georgia,serif;letter-spacing:-1px;white-space:nowrap}.bill-total>strong small{display:inline}.bill-zero{display:flex;align-items:center;flex-wrap:wrap;justify-content:space-between;gap:12px;background:var(--sage);margin-top:22px;padding:20px;border-radius:8px}.bill-zero>strong{font:46px Georgia,serif;color:var(--rust)}.bill-zero>small{width:100%;font-size:10px;line-height:1.7;color:#606e58}.bill-candidates{margin-top:22px;padding-top:22px;border-top:1px dashed var(--line);color:#7e827c}.bill-candidates .eyebrow{font-size:9px;margin-bottom:15px}.bill-candidates>div{display:flex;justify-content:space-between;gap:15px;font-size:12px;margin:12px 0}.bill-candidates>div b{white-space:nowrap;font-weight:500}.bill-candidates>p:not(.eyebrow){font-size:13px;margin-top:20px}.bill-candidates>small{display:block;font-size:10px;line-height:1.7;margin-top:9px}.candidate-invoices{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:16px}.candidate-invoices .invoice-card{background:#eeeee9;color:#777;box-shadow:none;border-style:dashed}.candidate-invoices strong{font-size:24px}.candidate-invoices .invoice-card small{font-size:8px;letter-spacing:.5px}.dupes-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin:30px 0}.dupe-card{border:1px solid var(--line);border-radius:10px;background:#fff;padding:25px;display:flex;flex-direction:column;align-items:start;gap:17px;min-width:0}.dupe-card h3{font-size:26px}.dupe-card p{font-size:13px}.dupe-card .small{font-size:11px}.dupe-card .small a,.neighbour-note a{text-decoration:underline}.dupe-card .text-link:last-child{margin-top:auto}.dupe-card .button{font-size:12px;padding:12px 15px}.ready-card{background:var(--sage)}.preview-card{background:var(--warm)}.candidate-card{background:#f3f2ee}.candidate-card h3{font-size:22px}.candidate-card p{color:#787d75}.neighbour-note{padding-top:12px}.stack-hero .price-note{max-width:870px;text-align:left}
 @media(max-width:900px){.dupes-grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:600px){.stack-hero h1{font-size:49px;line-height:1.08}.stack-bill{padding:22px 18px;margin-top:28px}.stack-bill>.eyebrow{font-size:9px;letter-spacing:1px;line-height:1.7}.bill-row{gap:12px;padding:18px 0}.bill-row strong{font-size:16px}.bill-row>b{font-size:28px}.availability{font-size:8px;letter-spacing:.2px}.bill-total{align-items:start;gap:12px}.bill-total>span{font-size:12px;max-width:170px}.bill-total>strong{font-size:31px}.bill-total>strong small{font-size:10px}.bill-zero{padding:16px}.bill-candidates>div{font-size:11px}.bill-candidates .eyebrow{font-size:8px}.dupes-grid{grid-template-columns:1fr;gap:15px}.dupe-card{padding:23px}.candidate-invoices .invoice-card{padding:14px 10px}.candidate-invoices .invoice-card span{font-size:9px}.candidate-invoices strong{font-size:24px}.candidate-invoices .invoice-card small{font-size:7px}.invoice-card small{overflow-wrap:anywhere}.money-home .invoice-card strong{white-space:nowrap}}
+
+/* Bold pass: ink hero, paper receipt, rust stamp. Ready is the only solid card; preview and candidates stay dashed. */
+body:has(.money-home){--ink-deep:#1c1d1f;--cream:#f4efe6;--rust-hi:#e98a6c;--mono:ui-monospace,"SF Mono",Menlo,monospace}
+body:has(.money-home) .site-header{background:var(--ink-deep);box-shadow:0 0 0 100vmax var(--ink-deep);clip-path:inset(0 -100vmax);border-bottom-color:#ffffff1a}
+body:has(.money-home) .brand{color:var(--cream)}
+body:has(.money-home) .site-header nav a:not(.nav-cta){color:#b9b3a8}
+body:has(.money-home) .nav-cta{background:var(--rust);border-color:var(--rust);color:#fff;white-space:nowrap}
+.money-home .money-hero{background:var(--ink-deep);box-shadow:0 0 0 100vmax var(--ink-deep);clip-path:inset(0 -100vmax);color:var(--cream);padding:84px 0 72px}
+.money-hero .eyebrow{color:var(--rust-hi);font-family:var(--mono);letter-spacing:3px}
+.money-home .money-hero h1{font-size:clamp(58px,9.4vw,128px);letter-spacing:-.055em;line-height:.94;font-weight:760;color:var(--cream);max-width:1100px}
+.money-home .money-hero h1 em{font:italic 400 1.02em Georgia,serif;letter-spacing:-.035em;color:var(--rust-hi)}
+.money-hero .lead{color:#c9c2b6;font-size:20px;margin-top:34px}
+.money-hero .button{font-size:15px;padding:18px 24px}
+.money-hero .button.secondary{color:var(--cream);border-color:#ffffff40}
+.money-hero .hero-caption{color:#8f897f;font-family:var(--mono);font-size:11px}
+.money-hero .price-note{color:#8f897f}
+.money-hero .price-note a{color:#c9c2b6}
+.money-home .stack-bill{position:relative;background:#fffdf8;border:0;border-radius:3px 3px 0 0;padding:38px 44px 34px;margin:58px auto 44px;box-shadow:0 40px 80px #0008;font-family:var(--mono);transform:rotate(-.6deg)}
+.money-home .stack-bill::after{content:"";position:absolute;left:0;right:0;bottom:-12px;height:12px;background:conic-gradient(from -45deg at 50% 0,#fffdf8 90deg,#0000 0) 0 0/18px 12px repeat-x}
+.stack-bill>.eyebrow{color:var(--ink);letter-spacing:3px;border-bottom:2px solid var(--ink);padding-bottom:18px}
+.stack-bill .bill-row strong{font:600 17px var(--mono);text-transform:uppercase;letter-spacing:.5px;color:var(--ink)}
+.stack-bill .bill-row>b{font:400 48px Georgia,serif;letter-spacing:-1.5px;color:var(--ink)}
+.bill-row.struck>b{position:relative}
+.bill-row.struck>b::after{content:"";position:absolute;left:-8%;right:-8%;top:50%;height:5px;border-radius:3px;background:var(--rust);transform:rotate(-7deg)}
+.stack-bill .bill-total{border-top:3px double var(--ink);color:var(--ink)}
+.stack-bill .bill-total>span{font-family:var(--mono);text-transform:uppercase;letter-spacing:.5px;font-size:13px}
+.stack-bill .bill-total>strong{font-size:54px;letter-spacing:-2px}
+.stack-bill .bill-zero{background:none;border:3px solid var(--rust);border-radius:4px;padding:18px 22px;transform:rotate(-1.4deg);color:var(--rust)}
+.stack-bill .bill-zero>span{font:700 15px var(--mono);text-transform:uppercase;letter-spacing:2px}
+.stack-bill .bill-zero>strong{font:400 84px/1 Georgia,serif;letter-spacing:-3px}
+.stack-bill .bill-zero>small{color:#8a5a49;border-top:1px dashed #af573f66;padding-top:10px}
+.stack-bill .bill-candidates{opacity:.62}
+.stack-bill .bill-candidates>div{font-family:var(--mono)}
+.money-home .section>h2,.money-home .section>.section-intro+h2{font-size:clamp(34px,4.6vw,60px);letter-spacing:-.04em;line-height:1.02;font-weight:700}
+.money-home .eyebrow{font-family:var(--mono);letter-spacing:2.5px;color:var(--rust)}
+.money-hero .stack-bill .eyebrow{color:var(--ink)}
+.money-home .incentive h2{font-size:clamp(32px,4.2vw,54px)}
+.invoice-section .invoice-grid{gap:14px}
+.invoice-section .invoice-grid .invoice-card{font-family:var(--mono);border-radius:2px;border-color:#d8cfc1;box-shadow:0 10px 18px #3d32271a}
+.invoice-section .invoice-grid .invoice-card:nth-child(4n+1){transform:rotate(-2.2deg)}
+.invoice-section .invoice-grid .invoice-card:nth-child(4n+2){transform:rotate(1.6deg) translateY(6px)}
+.invoice-section .invoice-grid .invoice-card:nth-child(4n+3){transform:rotate(-.8deg) translateY(-4px)}
+.invoice-section .invoice-grid .invoice-card:nth-child(4n){transform:rotate(2.4deg) translateY(3px)}
+.invoice-section .invoice-card strong{font:400 32px Georgia,serif;color:var(--ink)}
+.money-home .dupes-invoice{background:var(--ink-deep);border:0;color:var(--cream);border-radius:4px;box-shadow:0 30px 60px #1c1d1f40}
+.money-home .dupes-invoice .eyebrow{color:var(--rust-hi)}
+.money-home .dupes-invoice>strong{font-size:104px;color:var(--rust-hi);letter-spacing:-5px}
+.money-home .dupes-invoice p{color:#c9c2b6}
+.money-home .dupes-invoice .small{color:#8f897f}
+.money-home .ready-card{background:var(--ink-deep);border-color:var(--ink-deep);color:var(--cream);box-shadow:0 24px 50px #1c1d1f33}
+.money-home .ready-card p{color:#c9c2b6}
+.money-home .ready-card .availability.ready{background:#b7d3a8;color:#1c2a16;border-color:#b7d3a8}
+.money-home .ready-card .text-link{color:var(--rust-hi)}
+.money-home .ready-card h3{font-size:34px}
+.money-home .preview-card{background:none;border:2px dashed #cdb89f}
+.money-home .candidate-card{background:none;border:1.5px dashed #d2cfc7;box-shadow:none}
+.money-home .candidate-card h3{color:#8b8e88}
+.money-home .money-closing{background:var(--ink-deep);color:var(--cream);border-radius:4px;padding:80px 30px}
+.money-home .money-closing h2{font-size:clamp(46px,7vw,96px);letter-spacing:-.05em;line-height:.98;font-weight:760}
+.money-home .money-closing em{color:var(--rust-hi)}
+.money-home .money-closing>p:not(.eyebrow){color:#c9c2b6}
+.money-home .money-closing .eyebrow{color:var(--rust-hi)}
+.money-home .money-closing .button.secondary{color:var(--cream);border-color:#ffffff40}
+.money-home .price-options strong{font-size:76px}
+
+@media(max-width:600px){body:has(.money-home) .site-header nav{gap:12px}body:has(.money-home) .site-header nav a:not(.nav-cta){color:#d1cabe}
+.money-home .money-hero{padding:46px 0 44px}
+.money-home .money-hero h1{font-size:54px;letter-spacing:-2.6px;line-height:.98}
+.money-hero .lead{font-size:16px;margin-top:24px}
+.money-home .stack-bill{padding:26px 18px 24px;margin:40px 0 34px;transform:none}
+.stack-bill .bill-row strong{font-size:13px}
+.stack-bill .bill-row>b{font-size:32px}
+.stack-bill .bill-total>span{font-size:11px}
+.stack-bill .bill-total>strong{font-size:36px}
+.stack-bill .bill-zero{padding:14px 16px}
+.stack-bill .bill-zero>strong{font-size:58px}
+.invoice-section .invoice-card strong{font-size:22px}
+.money-home .dupes-invoice>strong{font-size:72px}
+.money-home .money-closing{padding:50px 20px}
+.money-home .money-closing h2{font-size:48px;letter-spacing:-2px}
+}
