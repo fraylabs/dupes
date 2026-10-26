@@ -8,8 +8,9 @@ import { Feedback, statuses } from './service.ts';
 import { credential, issue, id, hash, now, passwordHash, equal, verifySSO } from './auth.ts';
 import { rpc } from './mcp.ts';
 import { html, client, css, widget } from './ui.ts';
+import { cannyStep, cannyProgress, CannyImportError } from './canny-import.ts';
 
-export function createApp(db:Storage,config:{ssoSecret?:string;siteName?:string;publicOrigin?:string;basePath?:string;sessionCookie?:string;demo?:boolean}={}) {
+export function createApp(db:Storage,config:{ssoSecret?:string;siteName?:string;publicOrigin?:string;basePath?:string;sessionCookie?:string;demo?:boolean;cannyFetch?:typeof fetch}={}) {
   const service=new Feedback(db);
   const cookieName=config.sessionCookie||'feedback_session',cookiePath=config.basePath?config.basePath+'/':'/';
   const app=new Hono<{Variables:{auth:Record<string,any>|undefined;admin:boolean}}>();
@@ -118,6 +119,14 @@ export function createApp(db:Storage,config:{ssoSecret?:string;siteName?:string;
   app.get('/api/admin/keys',async c=>c.json(await db.all("SELECT id,name,expires FROM credentials WHERE kind='api'")));
   app.post('/api/admin/keys',async c=>{const p=z.object({name:z.string().min(1).max(100)}).parse(await c.req.json());const token=id()+id(),keyId=id();await db.run('INSERT INTO credentials(id,name,hash,kind) VALUES(?,?,?,?)',[keyId,p.name,await hash(token),'api']);return c.json({id:keyId,token},201);});
   app.delete('/api/admin/keys/:id',async c=>{await db.run("DELETE FROM credentials WHERE id=? AND kind='api'",[c.req.param('id')]);return c.json({ok:true});});
+  // One Canny page per call; clients repeat until done. The key is used for this call only.
+  app.get('/api/admin/import/canny',async c=>c.json({progress:await cannyProgress(db)??null}));
+  app.post('/api/admin/import/canny',async c=>{
+    if(config.demo)return c.json({error:'Import is not available in the demo'},403);
+    const p=z.object({apiKey:z.string().trim().min(1).max(200),restart:z.boolean().default(false)}).parse(await c.req.json());
+    try{return c.json(await cannyStep(db,p.apiKey,{restart:p.restart,fetcher:config.cannyFetch}));}
+    catch(e){if(e instanceof CannyImportError){if(e.retryAfter)c.header('Retry-After',String(e.retryAfter));return c.json({error:e.message,...(e.retryAfter?{retryAfter:e.retryAfter}:{})},e.status);}return c.json({error:'Import step failed. Nothing from this step was saved; continue to retry.'},500);}
+  });
   app.post('/mcp',async c=>{
     if(!c.get('admin'))return c.json({error:'API key required'},401);
     const protocol=c.req.header('MCP-Protocol-Version');if(protocol&&!['2025-03-26','2025-06-18'].includes(protocol))return c.json({error:'Unsupported MCP protocol version'},400);

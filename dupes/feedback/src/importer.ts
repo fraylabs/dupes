@@ -36,16 +36,23 @@ export async function downloadCanny(key:string,fetcher:typeof fetch=fetch):Promi
   return {boards,categories,tags,users:await list('v2/users/list','users',{},'cursor'),posts:await list('v1/posts/list','posts',{},'skip'),votes:await list('v2/votes/list','items',{},'cursor'),comments:await list('v2/comments/list','items',{},'cursor'),entries:await list('v1/entries/list','entries',{},'skip')};
 }
 export async function importCanny(db:Storage,s:CannySnapshot) {
-  for(const key of ['boards','categories','tags','users','posts','votes','comments','entries'] as const)if(!Array.isArray(s[key]))throw Error('Snapshot missing '+key);
-  // Snapshot migration must not resurrect votes on posts already merged locally.
+  await assertImportable(db);
+  const {ops,counts}=cannyStatements(s);await db.batch(ops);return counts;
+}
+// Snapshot migration must not resurrect votes on posts already merged locally.
+export async function assertImportable(db:Storage) {
   if(await db.get('SELECT 1 FROM posts WHERE id LIKE ? AND merged_into IS NOT NULL',['canny:%']))throw Error('Imported posts have been merged locally. Restore a pre-merge backup or import into a fresh database. Import not applied.');
+}
+// Pure statement builder, shared by the one-shot CLI import and the stepped hosted import.
+export function cannyStatements(s:CannySnapshot) {
+  for(const key of ['boards','categories','tags','users','posts','votes','comments','entries'] as const)if(!Array.isArray(s[key]))throw Error('Snapshot missing '+key);
   const ops:Statement[]=[];const add=(text:string,values:unknown[])=>ops.push({text,values});
   const userMap=new Map<string,Item>();const remember=(u:Item)=>userMap.set(remoteId(u),{...userMap.get(remoteId(u)),...u});for(const u of s.users)remember(u);
   for(const p of s.posts)if(p.author)remember(p.author);
   for(const v of s.votes)if(v.voter)remember(v.voter);
   for(const c of s.comments)if(c.author)remember(c.author);
   for(const b of s.boards)add('INSERT INTO boards(id,name,description,private,private_comments) VALUES(?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET name=excluded.name,private=excluded.private,private_comments=excluded.private_comments',[remoteId(b),String(b.name||'Imported board'),'',b.isPrivate?1:0,b.privateComments?1:0]);
-  for(const [uid,u] of userMap)add('INSERT INTO users(id,name,email,external_id,verified) VALUES(?,?,?,?,0) ON CONFLICT(id) DO UPDATE SET name=excluded.name,email=excluded.email',[uid,String(u.name||u.alias||'Community'),u.email||null,u.userID?String(u.userID):null]);
+  for(const [uid,u] of userMap)add('INSERT INTO users(id,name,email,external_id,verified) VALUES(?,?,?,?,0) ON CONFLICT(id) DO UPDATE SET name=excluded.name,email=COALESCE(excluded.email,email)',[uid,String(u.name||u.alias||'Community'),u.email||null,u.userID?String(u.userID):null]);
   const tagMap=new Map<string,Item>();
   for(const t of s.categories)tagMap.set(remoteId(t),{...t,kind:'category'});
   for(const t of s.tags)tagMap.set(remoteId(t),{...t,kind:'tag'});
@@ -66,5 +73,5 @@ export async function importCanny(db:Storage,s:CannySnapshot) {
     const eid=remoteId(e);add('INSERT INTO changelog(id,title,body,type,published,created) VALUES(?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET title=excluded.title,body=excluded.body,published=excluded.published',[eid,String(e.title),String(e.plaintextDetails||e.markdownDetails||e.details||''),e.type||e.types?.[0]||'new',e.publishedAt||e.publishedOn||e.published?1:0,e.publishedAt||e.publishedOn||e.created||now()]);
     add('DELETE FROM changelog_posts WHERE entry_id=?',[eid]);for(const p of e.posts||[])add('INSERT OR IGNORE INTO changelog_posts(entry_id,post_id) VALUES(?,?)',[eid,remoteId(p)]);
   }
-  await db.batch(ops);return {boards:s.boards.length,users:userMap.size,posts:s.posts.length,votes:s.votes.length,comments:s.comments.length,changelog:s.entries.length};
+  return {ops,counts:{boards:s.boards.length,users:userMap.size,posts:s.posts.length,votes:s.votes.length,comments:s.comments.length,changelog:s.entries.length}};
 }
