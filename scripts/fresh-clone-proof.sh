@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
-# remote.run uploads source without Git metadata. Make a local source repo, then
-# verify its fresh clone without a remote, registry publication or host credentials.
+# Snapshot the working tree into a local Git repo, then verify a fresh clone of
+# it without a remote, registry publication or host credentials.
 source_dir="$PWD"
 checkout="$source_dir/proof/fresh-checkout-$(date +%s)-$$"
 mkdir -p "$source_dir/proof"

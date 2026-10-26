@@ -2,15 +2,15 @@
 
 Self-hostable alternatives to paid tools. **Feedback** brings boards, votes, comments, roadmap and changelog. **Forms** brings one-question-at-a-time forms, branching, hidden fields, responses/CSV and signed webhooks. Both have REST, MCP, self-hosted SQLite and hosted D1 modes.
 
-The prepared public install is one command (npm publication is pending):
+Install and run with one command:
 
 ```sh
 npx @dupes/cli up feedback
 ```
 
-For the current private checkout, use `node packages/cli/bin/dupe.mjs up feedback`. Release preparation and publication gates are documented in [RELEASING.md](RELEASING.md).
+From a checkout, run `npm ci` and then `node packages/cli/bin/dupe.mjs up feedback`. Releases are documented in [RELEASING.md](RELEASING.md).
 
-Open http://localhost:3000. The command uses Docker when its daemon is available; otherwise it prepares Node dependencies and starts the same app. Node 22+ is required for the CLI. `--node` explicitly selects Node. After `npm ci`, `npx dupe` is available as the workspace binary. No registry package or image has been published.
+Open http://localhost:3000. The command uses Docker when its daemon is available; otherwise it prepares Node dependencies and starts the same app. Node 22+ is required for the CLI. `--node` explicitly selects Node. After `npm ci`, `npx dupe` is available as the workspace binary.
 
 The packaged CLI stores Feedback data in `./feedback-data/`; the source checkout uses `./data`. Inside:  one SQLite database and the private `admin-password` file. Read the password locally and sign in at `/admin`; it is never logged. Alternatively set a private `ADMIN_PASSWORD` (12+ characters) on the first start. Subsequent starts retain the stored password hash. Keep the data directory private, and back it up with SQLite's backup API or while the service is stopped. Restore the complete directory before starting.
 
@@ -28,17 +28,17 @@ Configuration: `DATA_DIR`, `PORT`, `HOST`, `PUBLIC_ORIGIN`, `SITE_NAME`, `ADMIN_
 
 Anonymous visitors provide a name and optional contact email. Their identity belongs to their browser session, not to ownership of an email address. They cannot claim an imported user's votes by entering that user's email. Signed SSO uses an HS256 JWT with `aud: "feedback"`, `sub`, `name`, optional `email`, and a short `exp`. The server signing that token must verify the user's identity and email. Configure `SSO_SECRET` privately. Imported users' Canny `userID` is retained as the SSO subject. Admin rights are never taken from voter JWTs.
 
-Optional email: configure your own Resend account with `RESEND_API_KEY` and verified `EMAIL_FROM`. Publishing a linked changelog queues one notification per identified voter. The worker sends only to SSO-verified addresses, every 30 seconds, with a provider idempotency key. Anonymous and imported contact emails stay unverified until signed SSO identifies them. No email is sent during import. Delivery credentials and a real delivery have not been exercised by the fixture proof.
+Optional email: configure your own Resend account with `RESEND_API_KEY` and verified `EMAIL_FROM`. Publishing a linked changelog queues one notification per identified voter. The worker sends only to SSO-verified addresses, every 30 seconds, with a provider idempotency key. Anonymous and imported contact emails stay unverified until signed SSO identifies them. No email is sent during import.
 
 Embed `<script src="https://your-feedback-host/widget.js" defer></script>` in a website to add the public feedback panel. The widget uses its own origin's browser session. Sites may require allowing the script and frame in their own CSP.
 
-The core has no Node imports. SQLite and D1 run through Drizzle. Hosted instances share a D1 database with tenant-scoped reads and writes, composite keys and foreign keys. Private Workers previews require a separate preview gate; durable public abuse limits are still future work. Changelog content is safely rendered as plain text. Rich media, integrations, Canny analytics and email-based account recovery are outside this first release.
+The core has no Node imports. SQLite and D1 run through Drizzle. Hosted instances share a D1 database with tenant-scoped reads and writes, composite keys and foreign keys. Hosted demo and signup abuse limits are described in `sites/dupes.sh/PUBLIC_ENTRY.md`. Changelog content is safely rendered as plain text. Rich media, integrations, Canny analytics and email-based account recovery are outside this first release.
 
-The existing Feedback proof scripts document earlier verification. Current feature checks use a running instance and synthetic data. Use `npm run check` during a normal build; never put credentials in logs.
+Use `npm run check` during a normal build; never put credentials in logs.
 
 ## Forms
 
-The prepared public command is `npx @dupes/cli up forms` (publication pending). From this checkout use `node packages/cli/bin/dupe.mjs up forms`. Data lives in `forms-data/` for the packaged CLI or `data/forms/` from source. Open `/admin` and use the private `admin-api-key` file, or configure `ADMIN_API_KEY` on first start.
+Run `npx @dupes/cli up forms`, or from a checkout `node packages/cli/bin/dupe.mjs up forms`. Data lives in `forms-data/` for the packaged CLI or `data/forms/` from source. Open `/admin` and use the private `admin-api-key` file, or configure `ADMIN_API_KEY` on first start.
 
 Build questions, add branching rules, save a draft and explicitly publish. Published definitions are immutable versions; submissions, hidden values and calculations are validated on the server. Export all responses to CSV or connect a signed, retried webhook. Public form links and the embed script collect responses without an account. Keep personal data private and configure appropriate retention for your use.
 
@@ -59,9 +59,9 @@ npx wrangler dev --local --config packages/platform/wrangler.jsonc
 
 The platform API uses a platform Bearer key. `POST /v1/instances` with `{ "app": "feedback", "name": "My workspace" }` returns `url`, `adminUrl`, `adminApiKey`, and `mcpEndpoint`. Save the returned key privately: it is returned only at creation. `GET /v1/instances`, `GET /v1/instances/:id`, and `DELETE /v1/instances/:id` operate only on that key's instances. Deletion permanently removes the instance's content and credentials. Usage includes requests and logical UTF-8 storage bytes, excluding shared indexes and page overhead.
 
-Set `DUPES_PLATFORM_URL` and `DUPES_PLATFORM_API_KEY` privately, then run `dupe up feedback --hosted --name "My workspace"`. The CLI saves the result in a mode-0600 file in `data/`, prints URLs and the file path, and keeps keys out of stdout. Use the returned admin key to sign in or authenticate instance REST/MCP calls. `dupe mcp feedback --url <instance-url>` prints agent configuration. HTTPS is required except for local development. Private previews additionally require `DUPES_PREVIEW_TOKEN` in the CLI environment, or the `X-Dupes-Preview-Token` header for direct API calls; browsers unlock `/_preview/login`. The preview token does not replace the platform or instance key.
+Set `DUPES_PLATFORM_URL` and `DUPES_PLATFORM_API_KEY` privately, then run `dupe up feedback --hosted --name "My workspace"`. The CLI saves the result in a mode-0600 file in `data/`, prints URLs and the file path, and keeps keys out of stdout. Use the returned admin key to sign in or authenticate instance REST/MCP calls. `dupe mcp feedback --url <instance-url>` prints agent configuration. HTTPS is required except for local development.
 
-The earlier `prove:hosted` script documents local Wrangler/workerd verification. Current features are checked in a real running instance. Local configuration uses a placeholder D1 ID; it does not provision or deploy Cloudflare resources. Hosted email delivery is not configured; the optional Resend sender currently runs in self-hosted Node mode.
+Local configuration uses a placeholder D1 ID; it does not provision or deploy Cloudflare resources. Hosted email delivery is not configured; the optional Resend sender currently runs in self-hosted Node mode.
 
 Canny is a trademark of its owner. Dupes isn't affiliated with or endorsed by Canny.
 

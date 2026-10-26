@@ -1,6 +1,16 @@
 {
   "name": "@dupes/cli",
   "version": "0.1.0",
+  "description": "One command to run self-hostable Dupes apps: Feedback (a Canny alternative) and Forms (a Typeform alternative).",
+  "homepage": "https://dupes.sh",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fraylabs/dupes.git",
+    "directory": "packages/cli"
+  },
+  "bugs": {
+    "url": "https://github.com/fraylabs/dupes/issues"
+  },
   "type": "module",
   "bin": {
     "dupe": "bin/dupe.mjs"

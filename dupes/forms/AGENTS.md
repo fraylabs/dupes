@@ -1,6 +1,6 @@
 # Forms agent setup
 
-Forms is a free, self-hostable alternative to Typeform. Start from the private checkout with `node packages/cli/bin/dupe.mjs up forms`, or use the prepared `npx @dupes/cli up forms` after the CLI is published. Node 22+ is required. Docker is selected when available; `--node` forces the Node process. Persistent data is in `data/forms/` from the checkout or `forms-data/` for the packaged CLI (override `DATA_DIR`).
+Forms is a free, self-hostable alternative to Typeform. Run `npx @dupes/cli up forms`, or `node packages/cli/bin/dupe.mjs up forms` from a checkout. Node 22+ is required. Docker is selected when available; `--node` forces the Node process. Persistent data is in `data/forms/` from the checkout or `forms-data/` for the packaged CLI (override `DATA_DIR`).
 
 Sign in using the private `admin-api-key` file, or privately configure `ADMIN_API_KEY` (32+ characters) on the first start. Never print, commit or paste that key into a public issue. Hosted `dupe up forms --hosted` returns the workspace URL, private admin key and MCP endpoint just like Feedback. The CLI saves keys in a mode-0600 file; configure platform credentials privately.
 
@@ -10,6 +10,6 @@ Read [API.md](API.md) for field/logic schemas and routes. The portable core impo
 
 Import a definition with `dupe import typeform --fixture fixtures/typeform.json`, or set `TYPEFORM_API_KEY` privately and use `--form <id>`. Only the documented read endpoint is used. Your key and data stay on your machine/server. Review the imported draft before publishing; unsupported fields or logic fail before writes. Original definitions are retained for private export alongside the usable draft.
 
-Validate features in the real running private instance. Do not start proof runs or fresh-install VMs. Use synthetic responses for live checks, including hidden-field paths, numeric calculations, different endings, idempotent response submission, private responses/CSV, webhook signatures/retries and tenant isolation. Never use a company-owned Typeform account to study or duplicate presentation.
+Use synthetic responses for live checks, including hidden-field paths, numeric calculations, different endings, idempotent response submission, private responses/CSV, webhook signatures/retries and tenant isolation.
 
 Typeform is a trademark of its owner. Dupes isn't affiliated with or endorsed by Typeform.

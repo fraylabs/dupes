@@ -25,4 +25,4 @@ if(packed.status!==0)throw Error('CLI packaging failed; nothing published.');
 const info=JSON.parse(packed.stdout)[0],archive=resolve(output,info.filename);
 const commit=spawnSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).stdout.trim();
 writeFileSync(resolve(output,'manifest.json'),JSON.stringify({package:info.id,file:info.filename,sha256:createHash('sha256').update(readFileSync(archive)).digest('hex'),commit,published:false,files:info.files.map(f=>f.path)},null,2)+'\n');
-console.log('Release prepared: release/'+info.filename+'\nSource commit: '+commit+'\nNothing published. After Brian approves, run npm run release:publish -- --approved-by-brian.');
+console.log('Release prepared: release/'+info.filename+'\nSource commit: '+commit+'\nNothing published. To publish, run npm run release:publish -- --confirm.');
