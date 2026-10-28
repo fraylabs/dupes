@@ -33,7 +33,7 @@ try {
   const boardHTML=await(await request('/i/next-dupe/')).text();assert.ok(boardHTML.includes("Dupes isn't affiliated with or endorsed by Typeform."));assert.ok((await(await request('/robots.txt')).text()).includes('Disallow: /'));await request('/missing-page',undefined,undefined,404);
   browser=await chromium.launch({headless:true,args:['--no-sandbox']});
   const desktop=await browser.newContext({viewport:{width:1440,height:1000}}),mobile=await browser.newContext({viewport:{width:390,height:844},isMobile:true,deviceScaleFactor:1});
-  const pages=['home','catalogue','vote','waitlist','docs','privacy'];const errors:string[]=[];
+  const pages=['home','signup','catalogue','vote','waitlist','docs','privacy'];const errors:string[]=[];
   for(const [kind,context] of [['desktop',desktop],['mobile',mobile]] as const) {
     const p=await context.newPage();p.on('pageerror',e=>errors.push(e.message));
     for(const name of pages){const path=name==='home'?'/':'/'+name;await p.goto(origin+path,{waitUntil:'networkidle'});if(name==='vote')await p.frameLocator('iframe').getByRole('button',{name:'Typeform',exact:true}).waitFor();assert.ok(await p.locator('h1').isVisible());const overflow=await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1);assert.equal(overflow,false,kind+' '+name+' horizontal overflow');const file=kind+'-'+name+'.png';await p.screenshot({path:resolve(dir,file),fullPage:true});shots.push(file);}

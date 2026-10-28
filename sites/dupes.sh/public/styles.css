@@ -95,3 +95,15 @@ body:has(.money-home) .nav-cta{background:var(--rust);border-color:var(--rust);c
 .money-home .money-closing{padding:50px 20px}
 .money-home .money-closing h2{font-size:48px;letter-spacing:-2px}
 }
+/* Hero shows the real demo board. */
+.money-home .shot-hero h1{font-size:clamp(46px,7.2vw,104px);max-width:1150px;text-wrap:balance}
+.hero-shot{display:block;max-width:1100px;margin:46px auto 12px;border:1px solid #ffffff26;border-radius:12px;overflow:hidden;background:#fff;box-shadow:0 30px 90px #00000080;text-align:left;transition:transform .2s}
+.hero-shot:hover{transform:translateY(-3px)}
+.hero-shot .browser-bar{height:34px}
+.hero-shot .browser-bar span{font:11px ui-monospace,monospace}
+.hero-shot img{display:block;width:100%;height:auto}
+.money-hero .price-note{max-width:760px;margin:18px auto 0}
+.signup-steps{counter-reset:step;padding-left:0}
+.signup-steps li{list-style:none;counter-increment:step}
+.signup-steps li::before{content:counter(step);display:inline-grid;place-items:center;width:22px;height:22px;margin-right:10px;border-radius:50%;background:var(--rust);color:#fff;font-size:12px;font-weight:700}
+@media(max-width:600px){.money-home .shot-hero h1{font-size:40px;letter-spacing:-1.8px;line-height:1.05}.hero-shot{margin-top:30px;border-radius:9px}}
