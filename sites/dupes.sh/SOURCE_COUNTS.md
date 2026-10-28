@@ -26,3 +26,7 @@ Page counting fails open if the aggregate write is unavailable: the page still s
 Use a synthetic human-like UA to request `/?utm_source=test`, then read authenticated stats filtered to `source=test` and confirm today's `/` count increases. A bot-UA GET, HEAD and asset request with that label must not increase it. Verify a synthetic waitlist signup carries the landing category across internal navigation, repeat submission does not duplicate it, and removal clears the signup. Delete only the tagged test aggregate rows through Infrastructure, then verify no `source=test` rows remain. Do not reset real traffic or store credentials in evidence. No proof VM or fresh install is required.
 
 Migration `0006_public_entry.sql` adds hosted signup metadata. `hostedSignups` groups current workspace signup rows independently of waitlist `signups`. Email addresses and keys never appear in these aggregate reports.
+
+## Homepage film steps
+
+The homepage demo film posts `{step,source}` to same-origin `POST /api/event` when it first plays (`demo_play`) and when it first reaches 12.0 s (`demo_half`), at most once each per page load. Each adds one to the UTC daily aggregate row with path `event:demo_play` or `event:demo_half` and the tab's landing source, so `/v1/stats` returns them under `visits`. Cross-origin requests are refused, unknown steps are rejected, and blank or bot user agents are not counted. Nothing else is stored: no visitor ID, IP or timestamp. These count page loads that played the film, not unique people.

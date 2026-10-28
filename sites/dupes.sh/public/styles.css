@@ -102,6 +102,7 @@ body:has(.money-home) .nav-cta{background:var(--rust);border-color:var(--rust);c
 .hero-shot .browser-bar{height:34px}
 .hero-shot .browser-bar span{font:11px ui-monospace,monospace}
 .hero-shot img{display:block;width:100%;height:auto}
+.hero-film:hover{transform:none}.hero-shot video{display:block;width:100%;height:auto;aspect-ratio:16/9;background:#fff}.money-hero .hero-caption a{color:inherit;text-decoration:underline}
 .money-hero .price-note{max-width:760px;margin:18px auto 0}
 .signup-steps{counter-reset:step;padding-left:0}
 .signup-steps li{list-style:none;counter-increment:step}

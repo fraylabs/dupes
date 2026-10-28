@@ -14,10 +14,12 @@ export function requestSource(request:Request) {
   try {const ref=new URL(request.headers.get('Referer')||'');if(['http:','https:'].includes(ref.protocol))return sourceLabel(ref.hostname)||'direct';}catch{}
   return 'direct';
 }
-export function countablePage(request:Request,response:Response) {
+export function humanAgent(request:Request) {
   const ua=request.headers.get('User-Agent')||'';
-  return request.method==='GET'&&response.status===200&&/^text\/html(?:;|$)/i.test(response.headers.get('Content-Type')||'')&&!!ua.trim()
-    &&!/(?:bot|spider|crawl|slurp|preview|headless|lighthouse|curl|wget|python|node|httpclient|go-http-client|uptime|monitor|facebookexternalhit|whatsapp|telegram)/i.test(ua)
+  return !!ua.trim()&&!/(?:bot|spider|crawl|slurp|preview|headless|lighthouse|curl|wget|python|node|httpclient|go-http-client|uptime|monitor|facebookexternalhit|whatsapp|telegram)/i.test(ua);
+}
+export function countablePage(request:Request,response:Response) {
+  return request.method==='GET'&&response.status===200&&/^text\/html(?:;|$)/i.test(response.headers.get('Content-Type')||'')&&humanAgent(request)
     &&!/(?:prefetch|prerender)/i.test((request.headers.get('Sec-Purpose')||'')+' '+(request.headers.get('Purpose')||''));
 }
 export function aggregatePath(request:Request) {
@@ -27,6 +29,11 @@ export function aggregatePath(request:Request) {
 }
 export async function recordPage(db:Storage,request:Request) {
   await db.run('INSERT INTO site_daily_visits(day,path,source,views) VALUES(?,?,?,1) ON CONFLICT(day,path,source) DO UPDATE SET views=views+1',[new Date().toISOString().slice(0,10),aggregatePath(request),requestSource(request)]);
+}
+// Homepage film steps share the daily aggregate table as path "event:<step>".
+export const DEMO_STEPS=['demo_play','demo_half'] as const;
+export async function recordEvent(db:Storage,step:typeof DEMO_STEPS[number],source:string) {
+  await db.run('INSERT INTO site_daily_visits(day,path,source,views) VALUES(?,?,?,1) ON CONFLICT(day,path,source) DO UPDATE SET views=views+1',[new Date().toISOString().slice(0,10),'event:'+step,source]);
 }
 const day=z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine(value=>{const parsed=new Date(value+'T00:00:00Z');return !Number.isNaN(+parsed)&&parsed.toISOString().slice(0,10)===value;});
 export async function sourceStats(db:Storage,input:Record<string,string>) {

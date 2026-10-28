@@ -8,6 +8,16 @@ try{
   if(new URL(location.href).searchParams.has('utm_source')||external||!savedSource)sessionStorage.setItem('dupes-landing-source',pageSource);
   landingSource=sessionStorage.getItem('dupes-landing-source')||pageSource;
 }catch{}
+const film=document.querySelector('#demo-film');
+if(film){
+  // Plays muted only while on screen; reduced-motion visitors start it themselves.
+  // Each step is counted once per page load as an anonymous daily total.
+  const sent={},track=step=>{if(sent[step])return;sent[step]=true;fetch('/api/event',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},body:JSON.stringify({step,source:landingSource})}).catch(()=>{});};
+  const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if('IntersectionObserver' in window)new IntersectionObserver(entries=>{if(reduced)return;if(entries.some(e=>e.isIntersecting))film.play().catch(()=>{});else film.pause();},{threshold:.5}).observe(film);
+  film.addEventListener('play',()=>track('demo_play'));
+  film.addEventListener('timeupdate',()=>{if(film.currentTime>=12)track('demo_half');});
+}
 const form=document.querySelector('#waitlist-form');
 if(form){
   const status=document.querySelector('#form-status'),leave=document.querySelector('#leave-waitlist');

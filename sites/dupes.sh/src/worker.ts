@@ -8,7 +8,7 @@ import { page,voteNotice } from './pages.ts';
 import { sitemapPaths,rssFeed } from './content.ts';
 import { bootstrapOwner } from '../../../packages/platform/src/workspace-auth.ts';
 import { signup } from './signup.ts';
-import { requestSource,sourceLabel,countablePage,recordPage,sourceStats } from './source-counts.ts';
+import { requestSource,sourceLabel,countablePage,recordPage,sourceStats,humanAgent,recordEvent,DEMO_STEPS } from './source-counts.ts';
 type Env={DB:Parameters<typeof d1Storage>[0];ASSETS:{fetch(request:Request):Promise<Response>};PLATFORM_API_KEYS:string;PUBLIC_ORIGIN?:string;SSO_SECRET?:string;ABUSE_SECRET?:string};
 const app=new Hono<{Bindings:Env}>();
 app.use('*',async(c,next)=>{await next();c.header('X-Content-Type-Options','nosniff');c.header('Referrer-Policy','strict-origin-when-cross-origin');if(!c.req.path.startsWith('/i/')&&!c.req.path.startsWith('/v1/')&&!c.req.path.startsWith('/demo'))c.header('Content-Security-Policy',"default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; frame-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'");});
@@ -31,6 +31,16 @@ app.delete('/api/waitlist',async c=>{
   await d1Storage(c.env.DB).run('DELETE FROM site_waitlist WHERE removal_hash=?',[await hash(input.token)]);return c.json({ok:true});
 });
 app.all('/api/waitlist',c=>c.json({error:'Method not allowed'},405));
+app.use('/api/event',bodyLimit({maxSize:1024}));
+app.post('/api/event',async c=>{
+  c.header('Cache-Control','no-store');
+  if(c.req.header('Origin')!==(c.env.PUBLIC_ORIGIN||new URL(c.req.url).origin))return c.json({error:'Origin not allowed'},403);
+  const input=z.object({step:z.enum(DEMO_STEPS),source:z.string().max(80).optional()}).parse(await c.req.json());
+  // Anonymous daily totals only: no visitor ID, IP or timestamp is stored.
+  if(humanAgent(c.req.raw))await recordEvent(d1Storage(c.env.DB),input.step,sourceLabel(input.source)||requestSource(c.req.raw));
+  return c.body(null,204);
+});
+app.all('/api/event',c=>c.json({error:'Method not allowed'},405));
 app.use('/api/signup',bodyLimit({maxSize:4096}));
 app.post('/api/signup',async c=>{
   c.header('Cache-Control','no-store');
@@ -64,7 +74,7 @@ app.all('/demo',async c=>{const url=new URL(c.req.url);url.pathname='/i/demo/';r
 app.all('/demo/*',async c=>{const url=new URL(c.req.url);url.pathname='/i/demo'+url.pathname.slice('/demo'.length);return platform.fetch(new Request(url,c.req.raw),c.env,c.executionCtx);});
 app.get('*',async c=>{
   const html=page(c.req.path);if(html){c.header('Cache-Control','no-store');return c.html(html.replace('</head>','<meta name="dupes-source" content="'+requestSource(c.req.raw)+'"></head>'));}
-  if(c.req.path.startsWith('/images/')||c.req.path.startsWith('/reference/')||['/styles.css','/board-legal.css','/demo-notice.css','/site.js'].includes(c.req.path))return c.env.ASSETS.fetch(c.req.raw);
+  if(c.req.path.startsWith('/images/')||c.req.path.startsWith('/video/')||c.req.path.startsWith('/reference/')||['/styles.css','/board-legal.css','/demo-notice.css','/site.js'].includes(c.req.path))return c.env.ASSETS.fetch(c.req.raw);
   return c.text('Page not found',404);
 });
 export default {fetch:app.fetch,scheduled:async(_event:unknown,env:Env)=>sweepForms(env)};
