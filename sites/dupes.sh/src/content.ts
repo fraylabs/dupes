@@ -188,4 +188,4 @@ export function rssFeed(origin:string):string {
   const posts=entries.filter(e=>e.date&&e.path.startsWith('/blog/')).sort((a,b)=>b.date!.localeCompare(a.date!));
   return '<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>Dupes blog</title><link>'+origin+'/blog</link><description>Problem-led notes on feedback boards, pricing and agents.</description>'+posts.map(e=>'<item><title>'+esc(e.title)+'</title><link>'+origin+e.path+'</link><guid>'+origin+e.path+'</guid><pubDate>'+new Date(e.date+'T09:00:00Z').toUTCString()+'</pubDate><description>'+esc(e.description)+'</description></item>').join('')+'</channel></rss>';
 }
-export const sitemapPaths=['/','/demo','/signup','/catalogue','/docs','/vote','/waitlist','/alternatives','/blog',...entries.map(e=>e.path)];
+export const sitemapPaths=['/','/demo','/signup','/catalogue','/docs','/vote','/waitlist','/privacy','/terms','/alternatives','/blog',...entries.map(e=>e.path)];

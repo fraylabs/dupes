@@ -23,7 +23,7 @@ ${dupesGrid()}
 ['Why no per-user pricing?','We want you to hear from more customers. A person voting or commenting shouldn’t become another line on your bill. We don’t cap tracked users.'],
 ['Can I import from Canny?','Yes. Our importer brings boards, users, posts, votes, comments and changelog using your own Canny API key. It runs on your machine or server; you’re responsible for having the right to move that data. See <a href="/docs#import">the import guide</a>. The code is public on <a href="https://github.com/fraylabs/dupes">GitHub</a>.'],
 ['Does it work with my AI agent?','Yes. Feedback has REST and MCP endpoints. Connect your private key to an MCP client to read requests, update statuses and publish a linked changelog. <a href="/docs#agents">See the agent setup</a>.'],
-['Where does my data live?','Self-hosted data stays on your server. We run hosted instances on Cloudflare Workers and D1, with data separated by workspace and instance. See <a href="/privacy">our privacy page</a> for what we store.'],
+['Where does my data live?','Self-hosted data stays on your server. Hosted instances run on our cloud service providers, with data kept separate for each workspace. See <a href="/privacy">our privacy page</a> for what we store.'],
 ['Is the code open?','The apps are licensed AGPL-3.0 and the CLI Apache-2.0. The repository isn’t public yet, and the npm CLI isn’t published. You can use the hosted version and live demo now.'],
 ['Who’s behind it?','We’re a small team at Fray. We’re building useful alternatives to subscription software, starting with feedback boards.']
 ].map(([q,a])=>`<details><summary>${q}</summary><p>${a}</p></details>`).join('')}</section>
