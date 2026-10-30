@@ -8,6 +8,7 @@ import { page,voteNotice } from './pages.ts';
 import { sitemapPaths,rssFeed } from './content.ts';
 import { bootstrapOwner } from '../../../packages/platform/src/workspace-auth.ts';
 import { signup } from './signup.ts';
+import { video } from './video.ts';
 import { requestSource,sourceLabel,countablePage,recordPage,sourceStats,humanAgent,recordEvent,DEMO_STEPS } from './source-counts.ts';
 type Env={DB:Parameters<typeof d1Storage>[0];ASSETS:{fetch(request:Request):Promise<Response>};PLATFORM_API_KEYS:string;PUBLIC_ORIGIN?:string;SSO_SECRET?:string;ABUSE_SECRET?:string};
 const app=new Hono<{Bindings:Env}>();
@@ -74,7 +75,8 @@ app.all('/demo',async c=>{const url=new URL(c.req.url);url.pathname='/i/demo/';r
 app.all('/demo/*',async c=>{const url=new URL(c.req.url);url.pathname='/i/demo'+url.pathname.slice('/demo'.length);return platform.fetch(new Request(url,c.req.raw),c.env,c.executionCtx);});
 app.get('*',async c=>{
   const html=page(c.req.path);if(html){c.header('Cache-Control','no-store');return c.html(html.replace('</head>','<meta name="dupes-source" content="'+requestSource(c.req.raw)+'"></head>'));}
-  if(c.req.path.startsWith('/images/')||c.req.path.startsWith('/video/')||c.req.path.startsWith('/reference/')||['/styles.css','/board-legal.css','/demo-notice.css','/site.js'].includes(c.req.path))return c.env.ASSETS.fetch(c.req.raw);
+  if(c.req.path.startsWith('/video/'))return video(c.req.raw,c.env.ASSETS);
+  if(c.req.path.startsWith('/images/')||c.req.path.startsWith('/reference/')||['/styles.css','/board-legal.css','/demo-notice.css','/site.js'].includes(c.req.path))return c.env.ASSETS.fetch(c.req.raw);
   return c.text('Page not found',404);
 });
 export default {fetch:app.fetch,scheduled:async(_event:unknown,env:Env)=>sweepForms(env)};
