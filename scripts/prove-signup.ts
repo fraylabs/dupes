@@ -31,8 +31,10 @@ try {
   pass('Without a name signup is unchanged; blank names, honeypots and cross-origin requests create nothing');
   for(const step of ['signup_submit','signup_board_open'])await post('/api/event',{step,source:'proof'},204);
   await post('/api/event',{step:'signup_other',source:'proof'},400);
+  await post('/api/event',{step:'page_seen',source:'proof',path:'/signup'},204);
+  for(const path of ['/nope',undefined])await post('/api/event',{step:'page_seen',source:'proof',path},400);
   const stats=await(await fetch(origin+'/v1/stats?source=proof',{headers:{Authorization:'Bearer '+operator}})).json();
-  assert.deepEqual(stats.visits.map((v:any)=>[v.path,v.views]).sort(),[['event:signup_board_open',1],['event:signup_submit',1]]);
-  pass('signup_submit and signup_board_open add to the anonymous daily counts');
+  assert.deepEqual(stats.visits.map((v:any)=>[v.path,v.views]).sort(),[['event:page_seen:/signup',1],['event:signup_board_open',1],['event:signup_submit',1]]);
+  pass('signup_submit, signup_board_open and page_seen (sitemap paths only) add to the anonymous daily counts');
 } catch(error) {console.error(logs.slice(-4000));throw error;}
 finally {worker.kill();}

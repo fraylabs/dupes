@@ -34,3 +34,7 @@ The homepage demo film posts `{step,source}` to same-origin `POST /api/event` wh
 ## Signup steps
 
 The signup page posts `signup_submit` when the form is sent and `signup_board_open` when the new board is opened, to the same `POST /api/event`. They are counted exactly like the film steps: path `event:signup_submit` or `event:signup_board_open` in the UTC daily aggregate with the landing source, returned under `visits`. No visitor ID, cookie, IP or timestamp is stored. They count submissions and opens, not unique people.
+
+## Page seen
+
+Every page posts `page_seen` with its path to the same `POST /api/event`, once per page load, from the page's own script. Only sitemap paths are accepted; anything else is rejected. It is counted like the steps above: path `event:page_seen:<path>` in the UTC daily aggregate with the landing source, returned under `visits`. No visitor ID, cookie, IP or timestamp is stored. Because crawlers that fetch HTML rarely run the script, this sits closer to real browsers than the raw page views; it still counts page loads, not unique people.

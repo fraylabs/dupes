@@ -31,9 +31,11 @@ export async function recordPage(db:Storage,request:Request) {
   await db.run('INSERT INTO site_daily_visits(day,path,source,views) VALUES(?,?,?,1) ON CONFLICT(day,path,source) DO UPDATE SET views=views+1',[new Date().toISOString().slice(0,10),aggregatePath(request),requestSource(request)]);
 }
 // Homepage film and signup steps share the daily aggregate table as path "event:<step>".
-export const DEMO_STEPS=['demo_play','demo_half','signup_submit','signup_board_open'] as const;
-export async function recordEvent(db:Storage,step:typeof DEMO_STEPS[number],source:string) {
-  await db.run('INSERT INTO site_daily_visits(day,path,source,views) VALUES(?,?,?,1) ON CONFLICT(day,path,source) DO UPDATE SET views=views+1',[new Date().toISOString().slice(0,10),'event:'+step,source]);
+// page_seen is sent by the page's own script, so it counts mostly real browsers; it keeps
+// the page as "event:page_seen:<path>" (sitemap paths only).
+export const DEMO_STEPS=['demo_play','demo_half','signup_submit','signup_board_open','page_seen'] as const;
+export async function recordEvent(db:Storage,step:typeof DEMO_STEPS[number],source:string,path?:string) {
+  await db.run('INSERT INTO site_daily_visits(day,path,source,views) VALUES(?,?,?,1) ON CONFLICT(day,path,source) DO UPDATE SET views=views+1',[new Date().toISOString().slice(0,10),'event:'+step+(path?':'+path:''),source]);
 }
 const day=z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine(value=>{const parsed=new Date(value+'T00:00:00Z');return !Number.isNaN(+parsed)&&parsed.toISOString().slice(0,10)===value;});
 export async function sourceStats(db:Storage,input:Record<string,string>) {

@@ -9,7 +9,8 @@ try{
   landingSource=sessionStorage.getItem('dupes-landing-source')||pageSource;
 }catch{}
 // Each step is counted once per page load as an anonymous daily total.
-const sent={},track=step=>{if(sent[step])return;sent[step]=true;fetch('/api/event',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},body:JSON.stringify({step,source:landingSource})}).catch(()=>{});};
+const sent={},track=(step,path)=>{if(sent[step])return;sent[step]=true;fetch('/api/event',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},body:JSON.stringify({step,source:landingSource,path})}).catch(()=>{});};
+track('page_seen',location.pathname);
 const film=document.querySelector('#demo-film');
 if(film){
   // Plays muted only while on screen; reduced-motion visitors start it themselves.

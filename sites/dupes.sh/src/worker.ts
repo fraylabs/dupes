@@ -36,9 +36,11 @@ app.use('/api/event',bodyLimit({maxSize:1024}));
 app.post('/api/event',async c=>{
   c.header('Cache-Control','no-store');
   if(c.req.header('Origin')!==(c.env.PUBLIC_ORIGIN||new URL(c.req.url).origin))return c.json({error:'Origin not allowed'},403);
-  const input=z.object({step:z.enum(DEMO_STEPS),source:z.string().max(80).optional()}).parse(await c.req.json());
+  const input=z.object({step:z.enum(DEMO_STEPS),source:z.string().max(80).optional(),path:z.string().max(200).optional()}).parse(await c.req.json());
+  const path=input.step==='page_seen'?input.path:undefined;
+  if(input.step==='page_seen'&&!sitemapPaths.includes(path??''))return c.json({error:'Unknown page'},400);
   // Anonymous daily totals only: no visitor ID, IP or timestamp is stored.
-  if(humanAgent(c.req.raw))await recordEvent(d1Storage(c.env.DB),input.step,sourceLabel(input.source)||requestSource(c.req.raw));
+  if(humanAgent(c.req.raw))await recordEvent(d1Storage(c.env.DB),input.step,sourceLabel(input.source)||requestSource(c.req.raw),path);
   return c.body(null,204);
 });
 app.all('/api/event',c=>c.json({error:'Method not allowed'},405));
