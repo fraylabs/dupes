@@ -59,10 +59,13 @@ async function usage(db:Storage,instance:Instance) {
   const row=await db.get('SELECT '+terms.join('+')+' bytes',Object.keys(tables).map(()=>instance.id));
   return {requests:instance.requests,storageBytes:Number(row?.bytes||0),storageMetric:'logical UTF-8 field bytes; shared indexes/page overhead excluded'};
 }
-platform.post('/v1/instances',async c=>{
-  const input=z.object({app:z.enum(['feedback','forms']),name:z.string().trim().min(1).max(100)}).parse(await c.req.json());
+export const instanceInput=z.object({app:z.enum(['feedback','forms']),name:z.string().trim().min(1).max(100)});
+export const instanceLimitError='Free hosted workspaces can have one instance. Use or delete your existing instance before creating another.';
+// One instance's writes for D1's atomic batch. Callers run them in a batch
+// (signup adds its workspace rows to the same one), then check the row exists.
+export async function provisionInstance(owner:string,input:z.infer<typeof instanceInput>) {
   const instanceId=id(),adminApiKey=id()+id(),created=now();
-  const instance:Instance={id:instanceId,owner_hash:c.get('owner'),app:input.app,name:input.name,created,requests:0};
+  const instance:Instance={id:instanceId,owner_hash:owner,app:input.app,name:input.name,created,requests:0};
   // Count and insertion share D1's atomic batch: concurrent browser/CLI calls
   // cannot both pass the one-instance free cap. Conditional seed writes also
   // become no-ops for the losing request, rather than creating orphan secrets.
@@ -73,9 +76,14 @@ platform.post('/v1/instances',async c=>{
     {text:`INSERT INTO hosted_credentials(tenant_id,id,name,hash,kind) SELECT ?,?,?,?,? WHERE ${exists}`,values:[instanceId,id(),'Provisioned admin',await hash(adminApiKey),'api',...guard]},
     {text:`INSERT INTO hosted_boards(tenant_id,id,name,description) SELECT ?,?,?,? WHERE ${exists}`,values:[instanceId,'ideas','Feature requests','Share an idea or vote for something you love.',...guard]}
   );
-  await c.get('db').batch(ops);
-  if(!await c.get('db').get('SELECT id FROM instances WHERE id=? AND owner_hash=?',guard))return c.json({error:'Free hosted workspaces can have one instance. Use or delete your existing instance before creating another.'},409);
-  return c.json({...location(instance,c.env.PUBLIC_ORIGIN||new URL(c.req.url).origin),adminApiKey,usage:{requests:0,storageBytes:(await usage(c.get('db'),instance)).storageBytes}},201);
+  return {ops,created:async(db:Storage,origin:string)=>await db.get('SELECT id FROM instances WHERE id=? AND owner_hash=?',guard)?{...location(instance,origin),adminApiKey,usage:{requests:0,storageBytes:(await usage(db,instance)).storageBytes}}:null};
+}
+platform.post('/v1/instances',async c=>{
+  const provision=await provisionInstance(c.get('owner'),instanceInput.parse(await c.req.json()));
+  await c.get('db').batch(provision.ops);
+  const created=await provision.created(c.get('db'),c.env.PUBLIC_ORIGIN||new URL(c.req.url).origin);
+  if(!created)return c.json({error:instanceLimitError},409);
+  return c.json(created,201);
 });
 platform.get('/v1/instances',async c=>{const {limit,offset}=pagination.parse(c.req.query());const rows=await c.get('db').all<Instance>('SELECT * FROM instances WHERE owner_hash=? ORDER BY created DESC,id DESC LIMIT ? OFFSET ?',[c.get('owner'),limit,offset]);return c.json(await Promise.all(rows.map(async instance=>({...location(instance,c.env.PUBLIC_ORIGIN||new URL(c.req.url).origin),usage:await usage(c.get('db'),instance)}))));});
 platform.get('/v1/instances/:id',async c=>{const instance=await c.get('db').get<Instance>('SELECT * FROM instances WHERE id=? AND owner_hash=?',[c.req.param('id'),c.get('owner')]);if(!instance)return c.json({error:'Instance not found'},404);return c.json({...location(instance,c.env.PUBLIC_ORIGIN||new URL(c.req.url).origin),usage:await usage(c.get('db'),instance)});});

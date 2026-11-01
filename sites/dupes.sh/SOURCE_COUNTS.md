@@ -30,3 +30,7 @@ Migration `0006_public_entry.sql` adds hosted signup metadata. `hostedSignups` g
 ## Homepage film steps
 
 The homepage demo film posts `{step,source}` to same-origin `POST /api/event` when it first plays (`demo_play`) and when it first reaches 12.0 s (`demo_half`), at most once each per page load. Each adds one to the UTC daily aggregate row with path `event:demo_play` or `event:demo_half` and the tab's landing source, so `/v1/stats` returns them under `visits`. Cross-origin requests are refused, unknown steps are rejected, and blank or bot user agents are not counted. Nothing else is stored: no visitor ID, IP or timestamp. These count page loads that played the film, not unique people.
+
+## Signup steps
+
+The signup page posts `signup_submit` when the form is sent and `signup_board_open` when the new board is opened, to the same `POST /api/event`. They are counted exactly like the film steps: path `event:signup_submit` or `event:signup_board_open` in the UTC daily aggregate with the landing source, returned under `visits`. No visitor ID, cookie, IP or timestamp is stored. They count submissions and opens, not unique people.

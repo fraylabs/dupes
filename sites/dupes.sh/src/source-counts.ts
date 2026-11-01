@@ -30,8 +30,8 @@ export function aggregatePath(request:Request) {
 export async function recordPage(db:Storage,request:Request) {
   await db.run('INSERT INTO site_daily_visits(day,path,source,views) VALUES(?,?,?,1) ON CONFLICT(day,path,source) DO UPDATE SET views=views+1',[new Date().toISOString().slice(0,10),aggregatePath(request),requestSource(request)]);
 }
-// Homepage film steps share the daily aggregate table as path "event:<step>".
-export const DEMO_STEPS=['demo_play','demo_half'] as const;
+// Homepage film and signup steps share the daily aggregate table as path "event:<step>".
+export const DEMO_STEPS=['demo_play','demo_half','signup_submit','signup_board_open'] as const;
 export async function recordEvent(db:Storage,step:typeof DEMO_STEPS[number],source:string) {
   await db.run('INSERT INTO site_daily_visits(day,path,source,views) VALUES(?,?,?,1) ON CONFLICT(day,path,source) DO UPDATE SET views=views+1',[new Date().toISOString().slice(0,10),'event:'+step,source]);
 }

@@ -12,6 +12,7 @@
     "prove": "tsx scripts/prove.ts",
     "prove:hosted": "tsx scripts/prove-hosted.ts",
     "prove:site": "tsx scripts/prove-site.ts",
+    "prove:signup": "tsx scripts/prove-signup.ts",
     "release:prepare": "node scripts/prepare-release.mjs",
     "release:publish": "node scripts/publish-release.mjs"
   },

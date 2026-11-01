@@ -46,7 +46,7 @@ app.use('/api/signup',bodyLimit({maxSize:4096}));
 app.post('/api/signup',async c=>{
   c.header('Cache-Control','no-store');
   if(c.req.header('Origin')!==(c.env.PUBLIC_ORIGIN||new URL(c.req.url).origin))return c.json({error:'Origin not allowed'},403);
-  const result=await signup(d1Storage(c.env.DB),c.req.raw,c.env.ABUSE_SECRET);
+  const result=await signup(d1Storage(c.env.DB),c.req.raw,c.env.ABUSE_SECRET,c.env.PUBLIC_ORIGIN||new URL(c.req.url).origin);
   if(result.retryAfter)c.header('Retry-After',String(result.retryAfter));
   return c.json(result.body,result.status);
 });
