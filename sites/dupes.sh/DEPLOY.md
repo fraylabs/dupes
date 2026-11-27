@@ -1,6 +1,6 @@
 # Deploying dupes.sh
 
-Deploy one site Worker and one D1 database. Do not deploy a second platform Worker: the site forwards `/v1/*` and `/i/*` to the platform in process. The `next-dupe` and `demo` Feedback tenants, the waitlist, other Feedback tenants and Forms tenants all use the same `DB` binding. `ASSETS` serves this site's `public/` directory with `run_worker_first: true`.
+Deploy one site Worker and one D1 database. Do not deploy a second platform Worker: the site forwards `/v1/*`, `/i/*` and the Faults store address `/api/<project>/store` to the platform in process. The `next-dupe` and `demo` Feedback tenants, the waitlist, other Feedback tenants, Forms tenants and Faults tenants all use the same `DB` binding. `ASSETS` serves this site's `public/` directory with `run_worker_first: true`.
 
 ## Deployment configuration
 
@@ -14,11 +14,11 @@ Create a private deployment config beside `wrangler.jsonc` so relative paths res
 
 ## Migrations
 
-Apply only unapplied site migrations, in order (`0001_platform.sql` to `0007_powered_by.sql`), with Wrangler's D1 migration state. The site set replaces `packages/platform/migrations`, which is for a standalone platform Worker; never apply both to one database, and never replay seed SQL by hand.
+Apply only unapplied site migrations, in order (`0001_platform.sql` to `0008_faults.sql`), with Wrangler's D1 migration state. The site set replaces `packages/platform/migrations`, which is for a standalone platform Worker; never apply both to one database, and never replay seed SQL by hand.
 
 ## Feedback admin bootstrap
 
-New Feedback instances need no database bootstrap. Authenticated `POST /v1/instances` with `{"app":"feedback","name":"My workspace"}` atomically provisions an instance and its initial admin API key; save it privately. At `<instance-url>/admin`, enter that key in the password field. Direct REST/MCP uses `Authorization: Bearer <instance-admin-key>`. Forms works the same way with `app: "forms"`.
+New Feedback instances need no database bootstrap. Authenticated `POST /v1/instances` with `{"app":"feedback","name":"My workspace"}` atomically provisions an instance and its initial admin API key; save it privately. At `<instance-url>/admin`, enter that key in the password field. Direct REST/MCP uses `Authorization: Bearer <instance-admin-key>`. Forms and Faults work the same way with `app: "forms"` or `app: "faults"`. One platform key owns one instance, so a second workspace needs its own key in `PLATFORM_API_KEYS`.
 
 The preseeded `/i/next-dupe` instance needs a one-time claim:
 
