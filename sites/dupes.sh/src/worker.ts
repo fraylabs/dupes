@@ -73,6 +73,8 @@ async function forward(c:any) {
   return response;
 }
 app.all('/i/*',forward);app.all('/v1/*',forward);
+// Faults store address: apps post error events to /api/<project number>/store.
+app.all('/api/:project{[0-9]+}/store',forward);app.all('/api/:project{[0-9]+}/store/',forward);
 app.all('/demo',async c=>{const url=new URL(c.req.url);url.pathname='/i/demo/';return platform.fetch(new Request(url,c.req.raw),c.env,c.executionCtx);});
 app.all('/demo/*',async c=>{const url=new URL(c.req.url);url.pathname='/i/demo'+url.pathname.slice('/demo'.length);return platform.fetch(new Request(url,c.req.raw),c.env,c.executionCtx);});
 app.get('*',async c=>{

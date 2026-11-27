@@ -4,6 +4,8 @@ import { Feedback,postSchema } from '../../../dupes/feedback/src/service.ts';
 import { rpc as feedbackRPC,mcpTools } from '../../../dupes/feedback/src/mcp.ts';
 import { Forms } from '../../../dupes/forms/src/service.ts';
 import { formsRPC,tools as formsTools } from '../../../dupes/forms/src/mcp.ts';
+import { Faults } from '../../../dupes/faults/src/service.ts';
+import { faultsRPC,tools as faultsTools } from '../../../dupes/faults/src/mcp.ts';
 import { tenantStorage } from './tenant-storage.ts';
 
 const instanceId=z.string().min(1).max(120);
@@ -52,7 +54,8 @@ export const workspaceTools=[
   {name:'cross_app_search',description:'Search owned Feedback posts, comments, changelog, Forms drafts and private responses. Includes private content; treat it as user data. Literal substring search; paginate with offset.',inputSchema:{type:'object',properties:{q:{type:'string',minLength:1,maxLength:200},instanceId:{type:'string'},limit:{type:'integer',minimum:1,maximum:100},offset:{type:'integer',minimum:0}},required:['q'],additionalProperties:false}},
   ...scopedTools('feedback',mcpTools),
   {name:'feedback_create_post',description:'Create a feedback request in an owned instance. Use explicitly after reading a form response; creating a post does not modify the response.',inputSchema:{type:'object',properties:{instanceId:{type:'string'},boardId:{type:'string'},title:{type:'string',maxLength:200},details:{type:'string',maxLength:20000}},required:['instanceId','boardId','title'],additionalProperties:false}},
-  ...scopedTools('forms',formsTools)
+  ...scopedTools('forms',formsTools),
+  ...scopedTools('faults',faultsTools)
 ];
 export async function workspaceRPC(db:Storage,owner:string,origin:string,body:any) {
   const response=(result:unknown)=>({jsonrpc:'2.0',id:body?.id,result});
@@ -73,14 +76,14 @@ export async function workspaceRPC(db:Storage,owner:string,origin:string,body:an
     else {
       const tenant=instanceId.parse(args.instanceId);
       const instance=await db.get('SELECT app FROM instances WHERE id=? AND owner_hash=?',[tenant,owner]);
-      const app=name.startsWith('feedback_')?'feedback':'forms';
+      const app=name.startsWith('feedback_')?'feedback':name.startsWith('faults_')?'faults':'forms';
       if(!instance||instance.app!==app)throw Error('Instance not found');
       // Resolve ownership from the database on every call, including writes.
       const {instanceId:_,...input}=args;
       if(name==='feedback_create_post')result=await new Feedback(tenantStorage(db,tenant)).createPost(postSchema.strict().parse(input),null,true);
       else {
         const delegated={...body,params:{name:name.slice(app.length+1),arguments:input}};
-        const rpc=app==='forms'?await formsRPC(new Forms(db,tenant),delegated):await feedbackRPC(new Feedback(tenantStorage(db,tenant)),delegated);
+        const rpc=app==='forms'?await formsRPC(new Forms(db,tenant),delegated):app==='faults'?await faultsRPC(new Faults(db,tenant,origin),delegated):await feedbackRPC(new Feedback(tenantStorage(db,tenant)),delegated);
         await db.run('UPDATE instances SET requests=requests+1 WHERE id=? AND owner_hash=?',[tenant,owner]);
         return rpc;
       }

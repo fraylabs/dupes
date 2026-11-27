@@ -7,6 +7,8 @@ import { hash,id,now } from '../../../dupes/feedback/src/auth.ts';
 import type { Storage,Statement } from '../../../dupes/feedback/src/storage.ts';
 import { tenantStorage,tenantTables } from './tenant-storage.ts';
 import { createFormsApp } from '../../../dupes/forms/src/app.ts';
+import { createFaultsApp } from '../../../dupes/faults/src/app.ts';
+import { ingest,sweepFaults,MAX_EVENT_BYTES } from '../../../dupes/faults/src/service.ts';
 import { deliverPending,publicFetch,type Delivery } from '../../../dupes/forms/src/webhooks.ts';
 import { ownedInstances,pagination,crossAppSearch,workspaceRPC } from './workspace.ts';
 import { platformOwner } from './workspace-auth.ts';
@@ -29,6 +31,18 @@ platform.use('*',bodyLimit({maxSize:2*1024*1024}));
 platform.use('*',async(c,next)=>{c.header('Cache-Control','no-store');c.set('db',d1Storage(c.env.DB));await next();});
 platform.onError((e,c)=>c.json({error:e instanceof z.ZodError?'Invalid input':'Request could not be completed'},e instanceof z.ZodError?400:500));
 platform.get('/health',async c=>{await c.get('db').get('SELECT 1');return c.json({ok:true,product:'dupes-platform'});});
+// Public store address for Faults. Client apps send error events here with only their project's own key,
+// so it answers any origin and is bounded per project instead of per caller.
+const storeHeaders={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'Content-Type, X-Sentry-Auth','Access-Control-Max-Age':'86400'};
+for(const path of ['/api/:project{[0-9]+}/store','/api/:project{[0-9]+}/store/']){
+  platform.options(path,c=>c.body(null,204,storeHeaders));
+  platform.post(path,bodyLimit({maxSize:MAX_EVENT_BYTES,onError:c=>c.json({error:'Event is too large.'},413,storeHeaders)}),async c=>{
+    const key=c.req.query('sentry_key')||c.req.header('X-Sentry-Auth')?.match(/sentry_key=([a-f0-9]{32})/)?.[1]||'';
+    let input:unknown;try{input=JSON.parse(await c.req.text());}catch{return c.json({error:'Invalid JSON.'},400,storeHeaders);}
+    const stored=await ingest(c.get('db'),Number(c.req.param('project')),key,input);
+    return c.json(stored.body,stored.status,stored.retryAfter?{...storeHeaders,'Retry-After':String(stored.retryAfter)}:storeHeaders);
+  });
+}
 platform.use('/v1/*',async(c,next)=>{
   const bearer=c.req.header('Authorization')?.match(/^Bearer (.+)$/)?.[1];
   if(!bearer)return c.json({error:'Platform API key required'},401);
@@ -54,12 +68,13 @@ async function usage(db:Storage,instance:Instance) {
   // Logical UTF-8 payload bytes, not allocated SQLite page size. Cheap exact
   // per-tenant content metering on management reads; shared page overhead excluded.
   const formsTables={credentials:'id,hash,kind,expires',forms:'id,title,draft,published,version,source_id,source_json,created,updated',versions:'form_id,version,definition',responses:'id,form_id,version,answers,hidden,variables,ending,created',webhooks:'id,form_id,url,secret,enabled,created',deliveries:'id,hook_id,response_id,payload,attempts,next_at,sent,last_status,lease_token,leased_until'};
-  const tables=instance.app==='forms'?formsTables:tenantTables,prefix=instance.app==='forms'?'forms_':'hosted_';
+  const faultsTables={credentials:'id,hash,kind,expires',projects:'name,public_key,created',groups:'id,fingerprint,type,message,location,level,status,first_seen,last_seen,first_release,last_release,sample'};
+  const tables:Record<string,string>=instance.app==='forms'?formsTables:instance.app==='faults'?faultsTables:tenantTables,prefix=instance.app==='forms'?'forms_':instance.app==='faults'?'faults_':'hosted_';
   const terms=Object.entries(tables).map(([table,cols])=>`COALESCE((SELECT sum(${cols.split(',').map(col=>`COALESCE(length(CAST(${col} AS BLOB)),0)`).join('+')}) FROM ${prefix}${table} WHERE tenant_id=?),0)`);
   const row=await db.get('SELECT '+terms.join('+')+' bytes',Object.keys(tables).map(()=>instance.id));
   return {requests:instance.requests,storageBytes:Number(row?.bytes||0),storageMetric:'logical UTF-8 field bytes; shared indexes/page overhead excluded'};
 }
-export const instanceInput=z.object({app:z.enum(['feedback','forms']),name:z.string().trim().min(1).max(100)});
+export const instanceInput=z.object({app:z.enum(['feedback','forms','faults']),name:z.string().trim().min(1).max(100)});
 export const instanceLimitError='Free hosted workspaces can have one instance. Use or delete your existing instance before creating another.';
 // One instance's writes for D1's atomic batch. Callers run them in a batch
 // (signup adds its workspace rows to the same one), then check the row exists.
@@ -71,7 +86,7 @@ export async function provisionInstance(owner:string,input:z.infer<typeof instan
   // become no-ops for the losing request, rather than creating orphan secrets.
   const ops:Statement[]=[{text:'INSERT INTO instances(id,owner_hash,app,name,created) SELECT ?,?,?,?,? WHERE NOT EXISTS(SELECT 1 FROM instances WHERE owner_hash=?)',values:[instanceId,instance.owner_hash,input.app,input.name,created,instance.owner_hash]}];
   const exists='EXISTS(SELECT 1 FROM instances WHERE id=? AND owner_hash=?)',guard=[instanceId,instance.owner_hash];
-  if(input.app==='forms')ops.push({text:`INSERT INTO forms_credentials(tenant_id,id,hash,kind) SELECT ?,?,?,? WHERE ${exists}`,values:[instanceId,id(),await hash(adminApiKey),'api',...guard]});
+  if(input.app!=='feedback')ops.push({text:`INSERT INTO ${input.app}_credentials(tenant_id,id,hash,kind) SELECT ?,?,?,? WHERE ${exists}`,values:[instanceId,id(),await hash(adminApiKey),'api',...guard]});
   else ops.push(
     {text:`INSERT INTO hosted_credentials(tenant_id,id,name,hash,kind) SELECT ?,?,?,?,? WHERE ${exists}`,values:[instanceId,id(),'Provisioned admin',await hash(adminApiKey),'api',...guard]},
     {text:`INSERT INTO hosted_boards(tenant_id,id,name,description) SELECT ?,?,?,? WHERE ${exists}`,values:[instanceId,'ideas','Feature requests','Share an idea or vote for something you love.',...guard]}
@@ -89,8 +104,8 @@ platform.get('/v1/instances',async c=>{const {limit,offset}=pagination.parse(c.r
 platform.get('/v1/instances/:id',async c=>{const instance=await c.get('db').get<Instance>('SELECT * FROM instances WHERE id=? AND owner_hash=?',[c.req.param('id'),c.get('owner')]);if(!instance)return c.json({error:'Instance not found'},404);return c.json({...location(instance,c.env.PUBLIC_ORIGIN||new URL(c.req.url).origin),usage:await usage(c.get('db'),instance)});});
 platform.delete('/v1/instances/:id',async c=>{
   const instance=await c.get('db').get<Instance>('SELECT * FROM instances WHERE id=? AND owner_hash=?',[c.req.param('id'),c.get('owner')]);if(!instance)return c.json({error:'Instance not found'},404);
-  const order=instance.app==='forms'?['deliveries','webhooks','responses','versions','forms','credentials']:['notifications','credentials','changelog_posts','post_tags','comments','votes','posts','tags','changelog','users','boards','settings'];
-  const prefix=instance.app==='forms'?'forms_':'hosted_';
+  const order=instance.app==='forms'?['deliveries','webhooks','responses','versions','forms','credentials']:instance.app==='faults'?['groups','projects','credentials']:['notifications','credentials','changelog_posts','post_tags','comments','votes','posts','tags','changelog','users','boards','settings'];
+  const prefix=instance.app==='forms'?'forms_':instance.app==='faults'?'faults_':'hosted_';
   await c.get('db').batch([...order.map(table=>({text:`DELETE FROM ${prefix}${table} WHERE tenant_id=?`,values:[instance.id]})),{text:'DELETE FROM instances WHERE id=? AND owner_hash=?',values:[instance.id,c.get('owner')]}]);return c.json({deleted:true,id:instance.id});
 });
 platform.get('/i/:tenant',c=>c.redirect('/i/'+c.req.param('tenant')+'/'));
@@ -114,6 +129,8 @@ platform.all('/i/:tenant/*',async c=>{
     const forms=createFormsApp(db,{tenant,basePath:base,siteName:instance.name,publicOrigin:c.env.PUBLIC_ORIGIN||url.origin,background:p=>c.executionCtx.waitUntil(p),sendWebhook:webhookDelivery(c.env)});
     return withPoweredBy(await forms.fetch(new Request(url,c.req.raw)),instance,url.pathname,base);
   }
+  // Faults has no public page, so it carries no hosted footer.
+  if(instance.app==='faults')return createFaultsApp(db,{tenant,basePath:base,siteName:instance.name,publicOrigin:c.env.PUBLIC_ORIGIN||url.origin}).fetch(new Request(url,c.req.raw));
   const scoped=tenantStorage(db,tenant);
   const app=createApp(scoped,{siteName:instance.name,publicOrigin:c.env.PUBLIC_ORIGIN||url.origin,ssoSecret:tenant===DEMO_ID?undefined:c.env.SSO_SECRET,basePath:base,sessionCookie:'feedback_'+tenant,demo:tenant===DEMO_ID});
   const response=await withPoweredBy(await app.fetch(new Request(url,c.req.raw)),instance,url.pathname,base);
@@ -125,4 +142,4 @@ platform.all('/i/:tenant/*',async c=>{
   return response;
 });
 export default {fetch:platform.fetch,scheduled:async(_event:unknown,env:Env)=>sweepForms(env)};
-export async function sweepForms(env:Pick<Env,'DB'>&WebhookBinding){const db=d1Storage(env.DB);await publicMaintenance(db);const pending=await db.all('SELECT DISTINCT tenant_id FROM forms_deliveries WHERE sent=0 AND attempts<10 AND next_at<=? LIMIT 20',[Date.now()]);await Promise.all(pending.map(row=>deliverPending(db,row.tenant_id,webhookDelivery(env))));}
+export async function sweepForms(env:Pick<Env,'DB'>&WebhookBinding){const db=d1Storage(env.DB);await publicMaintenance(db);if(new Date().getUTCMinutes()===0)await sweepFaults(db);const pending=await db.all('SELECT DISTINCT tenant_id FROM forms_deliveries WHERE sent=0 AND attempts<10 AND next_at<=? LIMIT 20',[Date.now()]);await Promise.all(pending.map(row=>deliverPending(db,row.tenant_id,webhookDelivery(env))));}
