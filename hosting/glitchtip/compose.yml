@@ -1,0 +1,65 @@
+# GlitchTip (MIT) as its makers ship it: https://glitchtip.com/documentation/install
+# Nothing here changes the app. This file only says how it runs on one small server.
+name: glitchtip
+
+services:
+  postgres:
+    image: postgres:18
+    # GlitchTip's partitioned tables need more locks than Postgres allows by default.
+    command: -c max_locks_per_transaction=512 -c shared_buffers=96MB
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in .env}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    mem_limit: 320m
+    restart: unless-stopped
+    volumes:
+      - pg-data:/var/lib/postgresql
+
+  web:
+    image: glitchtip/glitchtip:6
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres
+      SECRET_KEY: ${SECRET_KEY:?set in .env}
+      GLITCHTIP_DOMAIN: https://${HOST_NAME:?set in .env}
+      DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL:?set in .env}
+      EMAIL_URL: ${EMAIL_URL:-consolemail://}
+      ALLOWED_HOSTS: ${HOST_NAME},localhost,127.0.0.1
+      SERVER_ROLE: all_in_one
+      # No Valkey: Postgres carries the task queue and cache, which keeps memory low.
+      VALKEY_URL: ""
+      ENABLE_USER_REGISTRATION: "False"
+      ENABLE_ORGANIZATION_CREATION: "False"
+      GLITCHTIP_ENABLE_MCP: "True"
+      GLITCHTIP_ENABLE_UPTIME: "False"
+      GLITCHTIP_RETENTION_DAYS: ${RETENTION_DAYS:-90}
+    mem_limit: 560m
+    restart: unless-stopped
+    volumes:
+      - uploads:/code/uploads
+
+  caddy:
+    image: caddy:2
+    depends_on:
+      - web
+    environment:
+      HOST_NAME: ${HOST_NAME}
+    mem_limit: 128m
+    ports:
+      - "80:80"
+      - "443:443"
+    restart: unless-stopped
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+
+volumes:
+  pg-data:
+  uploads:
+  caddy-data:

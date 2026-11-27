@@ -1,0 +1,5 @@
+# Local check only: reach the app on this machine without a certificate.
+services:
+  web:
+    ports:
+      - "127.0.0.1:18000:8000"

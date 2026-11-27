@@ -1,0 +1,6 @@
+.env
+credentials.json
+credentials.new
+bootstrap.log
+backups/
+prove.tmp/

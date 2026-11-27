@@ -9,3 +9,5 @@ Canny is a trademark of its owner. Dupes isn't affiliated with or endorsed by Ca
 Typeform, Calendly, Linktree, Statuspage, Mailchimp, Hotjar, Loom and DocSend are trademarks of their respective owners. Dupes isn't affiliated with or endorsed by those owners. Names appear only as plain-text references to alternatives and import sources; no third-party logos or visual identities are used.
 
 ArtCraft and the Crafting Apps are independent projects from the ArtCraft team and contributors. The catalogue links to their repositories, credits those authors and records checked code licences. No community project code or brand assets are bundled or hosted here. Their trademarks and third-party assets may be subject to separate terms.
+
+GlitchTip is its makers' project, MIT licensed. `hosting/glitchtip` runs the makers' own image unchanged; no GlitchTip code or brand assets are bundled here. Dupes isn't affiliated with or endorsed by GlitchTip.

@@ -1,0 +1,9 @@
+# HTTPS with an automatic certificate. The host name's DNS record must point at this server.
+{$HOST_NAME} {
+	request_body {
+		max_size 40MB
+	}
+	reverse_proxy web:8000 {
+		request_buffers 4MB
+	}
+}
