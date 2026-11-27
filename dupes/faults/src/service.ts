@@ -52,11 +52,14 @@ export async function ingest(db:Storage,projectId:number,key:string,input:unknow
     SELECT ?,?,?,?,?,?,?,?,?,?,?,?,? WHERE (SELECT count(*) FROM faults_groups WHERE project_id=?)<? OR EXISTS(SELECT 1 FROM faults_groups WHERE project_id=? AND fingerprint=?)
     ON CONFLICT(project_id,fingerprint) DO UPDATE SET count=count+1,status='open',message=excluded.message,location=excluded.location,level=excluded.level,last_seen=excluded.last_seen,last_release=excluded.last_release,sample=excluded.sample RETURNING id`,
     [project.tenant_id,id(),projectId,print,sample.type,sample.value,place.slice(0,200),sample.level,stamp,stamp,sample.release,sample.release,JSON.stringify(sample),projectId,GROUPS_PER_PROJECT,projectId,print]);
-  if(!saved)return {status:429,body:{error:'This project holds its maximum number of distinct faults. Resolve or wait for old ones to expire.'},retryAfter:3600};
+  if(!saved)return {status:429,body:{error:'This project holds its maximum number of distinct faults. Delete old ones or wait for them to expire.'},retryAfter:3600};
   await db.run('UPDATE instances SET requests=requests+1 WHERE id=?',[project.tenant_id]);
   return {status:200,body:{id:sample.event_id}};
 }
-export async function sweepFaults(db:Storage,time=Date.now()) {await db.run('DELETE FROM faults_groups WHERE last_seen<?',[new Date(time-KEEP_DAYS*86400000).toISOString()]);}
+export async function sweepFaults(db:Storage,time=Date.now()) {
+  await db.run('DELETE FROM faults_groups WHERE last_seen<?',[new Date(time-KEEP_DAYS*86400000).toISOString()]);
+  await db.run('DELETE FROM faults_credentials WHERE expires IS NOT NULL AND expires<?',[time]);
+}
 const columns='g.id,g.project_id project,p.name project_name,g.type,g.message,g.location,g.level,g.status,g.count,g.first_seen,g.last_seen,g.first_release,g.last_release';
 export class Faults {
   constructor(public db:Storage,public tenant:string,public origin:string){}
@@ -77,4 +80,5 @@ export class Faults {
   }
   async get(faultId:string){const row=await this.db.get(`SELECT ${columns},g.sample FROM faults_groups g JOIN faults_projects p ON p.id=g.project_id WHERE g.tenant_id=? AND g.id=?`,[this.tenant,faultId]);return row?{...row,sample:JSON.parse(row.sample) as Sample}:undefined;}
   async setStatus(faultId:string,status:'open'|'resolved'){if(!await this.get(faultId))throw Error('Fault not found');await this.db.run('UPDATE faults_groups SET status=? WHERE tenant_id=? AND id=?',[status,this.tenant,faultId]);return this.get(faultId);}
+  async remove(faultId:string){if(!await this.get(faultId))throw Error('Fault not found');await this.db.run('DELETE FROM faults_groups WHERE tenant_id=? AND id=?',[this.tenant,faultId]);return {deleted:true,id:faultId};}
 }

@@ -10,7 +10,7 @@ import { faultsRPC } from './mcp.ts';
 import { html,css,client } from './ui.ts';
 // The private side of Faults: everything here needs the instance admin key. Apps send events to the
 // platform's public store address instead, which needs only a project's own key.
-export function createFaultsApp(db:Storage,config:{tenant:string;basePath?:string;siteName?:string;publicOrigin:string}) {
+export function createFaultsApp(db:Storage,config:{tenant:string;basePath?:string;publicOrigin:string}) {
   const service=new Faults(db,config.tenant,config.publicOrigin),base=config.basePath||'',cookieName='faults_'+config.tenant,cookiePath=base+'/';
   const app=new Hono<{Variables:{auth:any}}>();
   app.use('*',secureHeaders({contentSecurityPolicy:{defaultSrc:["'self'"],scriptSrc:["'self'"],styleSrc:["'self'"],imgSrc:["'self'"],frameAncestors:["'none'"]}}));
@@ -25,7 +25,7 @@ export function createFaultsApp(db:Storage,config:{tenant:string;basePath?:strin
   });
   app.onError((e,c)=>c.json({error:e instanceof z.ZodError?'Please check the submitted values.':e instanceof SyntaxError?'Invalid JSON.':(e as any).cause?'Request could not be completed.':e.message},(e as any).cause?500:e.message==='Fault not found'?404:400));
   app.get('/health',async c=>{await db.get('SELECT 1 FROM faults_projects WHERE tenant_id=? LIMIT 1',[config.tenant]);return c.json({ok:true,product:'faults'});});
-  app.get('/api/session',c=>c.json({admin:!!c.get('auth'),siteName:config.siteName||'Faults'}));
+  app.get('/api/session',c=>c.json({admin:!!c.get('auth')}));
   app.post('/api/login',async c=>{
     const input=z.object({apiKey:z.string().min(20).max(200)}).parse(await c.req.json());
     const key=await db.get("SELECT id FROM faults_credentials WHERE tenant_id=? AND hash=? AND kind='api' AND (expires IS NULL OR expires>?)",[config.tenant,await hash(input.apiKey),Date.now()]);
@@ -43,6 +43,7 @@ export function createFaultsApp(db:Storage,config:{tenant:string;basePath?:strin
   app.get('/api/faults/:id',async c=>{const fault=await service.get(c.req.param('id'));return fault?c.json(fault):c.json({error:'Fault not found'},404);});
   app.post('/api/faults/:id/resolve',async c=>c.json(await service.setStatus(c.req.param('id'),'resolved')));
   app.post('/api/faults/:id/reopen',async c=>c.json(await service.setStatus(c.req.param('id'),'open')));
+  app.delete('/api/faults/:id',async c=>c.json(await service.remove(c.req.param('id'))));
   app.post('/mcp',async c=>{if(!c.get('auth'))return c.json({error:'Admin API key required.'},401);const result=await faultsRPC(service,await c.req.json());return result?c.json(result):c.body(null,202);});
   app.get('/mcp',c=>c.json({error:'Use authenticated Streamable HTTP POST.'},405));
   app.get('/assets/style.css',c=>c.text(css,200,{'Content-Type':'text/css; charset=utf-8'}));

@@ -61,7 +61,7 @@ try {
 
   const rpc=async(url:string,headers:Record<string,string>,name:string,args:unknown={})=>{const r=(await call('POST',url,200,headers,{jsonrpc:'2.0',id:1,method:'tools/call',params:{name,arguments:args}})).body.result;return {isError:!!r.isError,value:r.isError?r.content[0].text:JSON.parse(r.content[0].text)};};
   const tools=(await call('POST',made.url+'/mcp',200,admin,{jsonrpc:'2.0',id:1,method:'tools/list'})).body.result.tools.map((t:any)=>t.name);
-  assert.deepEqual(tools,['list_projects','create_project','list_faults','get_fault','resolve_fault','reopen_fault']);
+  assert.deepEqual(tools,['list_projects','create_project','list_faults','get_fault','resolve_fault','reopen_fault','delete_fault']);
   assert.equal((await rpc(made.url+'/mcp',admin,'list_faults',{status:'all'})).value.length,3);
   assert.equal((await rpc(made.url+'/mcp',admin,'get_fault',{id:typeError.id})).value.sample.type,'TypeError');
   const second=(await rpc(origin+'/v1/mcp',platformKey,'faults_create_project',{instanceId:made.id,name:'Flood'})).value;
@@ -74,7 +74,8 @@ try {
   await call('GET',made.url+'/api/faults',401,{Authorization:'Bearer '+other.adminApiKey});
   assert.equal((await rpc(origin+'/v1/mcp',{Authorization:'Bearer '+other.workspaceKey,...json},'faults_list_faults',{instanceId:made.id})).isError,true);
   assert.equal((await rpc(origin+'/v1/mcp',{Authorization:'Bearer '+other.workspaceKey,...json},'faults_list_faults',{instanceId:other.instanceId})).isError,true);
-  pass('Another workspace cannot read these faults with its admin key or its workspace key');
+  await call('POST',origin+'/v1/instances',403,{Authorization:'Bearer '+other.workspaceKey,...json},{app:'faults',name:'Not yet'});
+  pass('Another workspace cannot read these faults, and a signup key cannot create a Faults workspace');
 
   browser=await chromium.launch({headless:true,args:['--no-sandbox']});const errors:string[]=[];
   const page=await browser.newPage({viewport:{width:1280,height:900}});page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
@@ -96,6 +97,9 @@ try {
   for(let i=0;i<130;i++){const r=await fetch(origin+'/api/'+second.id+'/store/?sentry_key='+flood.username,{method:'POST',headers:json,body:JSON.stringify(thrown('Error','flood',[['loop',1]]))});statuses.push(r.status);if(r.status===429)retry=r.headers.get('Retry-After')||'';await r.body?.cancel();}
   assert.ok(statuses.includes(200)&&statuses.includes(429)&&statuses.every(s=>s===200||s===429)&&Number(retry)>0,'Per-project minute limit');
   const flooded=(await call('GET',made.url+'/api/faults?project='+second.id,200,admin)).body;assert.equal(flooded.length,1);assert.equal(flooded[0].count,statuses.filter(s=>s===200).length);
+  await call('DELETE',made.url+'/api/faults/'+flooded[0].id,401);
+  assert.deepEqual((await call('DELETE',made.url+'/api/faults/'+flooded[0].id,200,admin)).body,{deleted:true,id:flooded[0].id});
+  assert.equal((await call('GET',made.url+'/api/faults?status=all&project='+second.id,200,admin)).body.length,0);await call('DELETE',made.url+'/api/faults/'+flooded[0].id,404,admin);
   pass('One project is held to its events-per-minute limit; refused events are not counted');
 
   const usage=(await call('GET',origin+'/v1/instances/'+made.id,200,platformKey)).body.usage;assert.ok(usage.storageBytes>0&&usage.requests>0);

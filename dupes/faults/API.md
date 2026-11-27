@@ -2,7 +2,7 @@
 
 ## Sending events
 
-`POST /api/<project number>/store/` on the platform origin, with the project's key as `?sentry_key=<key>` or in an `X-Sentry-Auth: Sentry sentry_key=<key>` header. The body is one JSON error event in the Sentry event format, which many small reporters and SDK transports already produce. Any origin may post. The envelope format is not accepted.
+`POST /api/<project number>/store/` on the platform origin, with the project's key as `?sentry_key=<key>` or in an `X-Sentry-Auth: Sentry sentry_key=<key>` header. The body is one JSON error event in the Sentry event format, which small reporters can post directly. Any origin may post. The envelope format that current official SDKs send is not accepted.
 
 Kept from each event: `event_id`, `timestamp`, `level`, `platform`, `release`, `environment`, up to 30 `tags`, and either the last entry of `exception.values` (`type`, `value` and up to 60 stack frames with `filename`, `function`, `lineno`, `colno`, `in_app`) or a plain `message`. Every field is cut to a fixed length. Everything else, including `user`, `request`, `extra`, `contexts` and breadcrumbs, is dropped before storage.
 
@@ -23,6 +23,7 @@ All URLs below are relative to the instance URL. Routes use `Authorization: Bear
 - `GET /api/faults?status=open|resolved|all&project=<number>&limit=50&offset=0`: faults, most recently seen first; max page size 200.
 - `GET /api/faults/:id`: one fault with its latest sample.
 - `POST /api/faults/:id/resolve`, `POST /api/faults/:id/reopen`.
+- `DELETE /api/faults/:id`: remove a fault and its count for good, for example junk. A project at its limit takes new faults again once old ones are deleted or expire.
 - `POST /mcp`: stateless Streamable HTTP MCP with the same operations.
 
 Not included: alerts, source maps, native crash reports, per-event history, teams.

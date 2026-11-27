@@ -11,7 +11,7 @@ import { createFaultsApp } from '../../../dupes/faults/src/app.ts';
 import { ingest,sweepFaults,MAX_EVENT_BYTES } from '../../../dupes/faults/src/service.ts';
 import { deliverPending,publicFetch,type Delivery } from '../../../dupes/forms/src/webhooks.ts';
 import { ownedInstances,pagination,crossAppSearch,workspaceRPC } from './workspace.ts';
-import { platformOwner } from './workspace-auth.ts';
+import { platformOwner,bootstrapOwner } from './workspace-auth.ts';
 import { DEMO_ID,resetDemo,publicMaintenance } from './demo.ts';
 import { poweredByCSS,withPoweredBy } from './powered-by.ts';
 import { connectionAddress,rateLimit } from './public-limits.ts';
@@ -94,7 +94,10 @@ export async function provisionInstance(owner:string,input:z.infer<typeof instan
   return {ops,created:async(db:Storage,origin:string)=>await db.get('SELECT id FROM instances WHERE id=? AND owner_hash=?',guard)?{...location(instance,origin),adminApiKey,usage:{requests:0,storageBytes:(await usage(db,instance)).storageBytes}}:null};
 }
 platform.post('/v1/instances',async c=>{
-  const provision=await provisionInstance(c.get('owner'),instanceInput.parse(await c.req.json()));
+  const input=instanceInput.parse(await c.req.json());
+  // Faults is not open to self-serve signups yet: only a configured platform key may create one.
+  if(input.app==='faults'&&!await bootstrapOwner(c.env.PLATFORM_API_KEYS,c.req.header('Authorization')!.slice(7)))return c.json({error:'Faults workspaces are not open to new signups yet.'},403);
+  const provision=await provisionInstance(c.get('owner'),input);
   await c.get('db').batch(provision.ops);
   const created=await provision.created(c.get('db'),c.env.PUBLIC_ORIGIN||new URL(c.req.url).origin);
   if(!created)return c.json({error:instanceLimitError},409);
@@ -130,7 +133,7 @@ platform.all('/i/:tenant/*',async c=>{
     return withPoweredBy(await forms.fetch(new Request(url,c.req.raw)),instance,url.pathname,base);
   }
   // Faults has no public page, so it carries no hosted footer.
-  if(instance.app==='faults')return createFaultsApp(db,{tenant,basePath:base,siteName:instance.name,publicOrigin:c.env.PUBLIC_ORIGIN||url.origin}).fetch(new Request(url,c.req.raw));
+  if(instance.app==='faults')return createFaultsApp(db,{tenant,basePath:base,publicOrigin:c.env.PUBLIC_ORIGIN||url.origin}).fetch(new Request(url,c.req.raw));
   const scoped=tenantStorage(db,tenant);
   const app=createApp(scoped,{siteName:instance.name,publicOrigin:c.env.PUBLIC_ORIGIN||url.origin,ssoSecret:tenant===DEMO_ID?undefined:c.env.SSO_SECRET,basePath:base,sessionCookie:'feedback_'+tenant,demo:tenant===DEMO_ID});
   const response=await withPoweredBy(await app.fetch(new Request(url,c.req.raw)),instance,url.pathname,base);
